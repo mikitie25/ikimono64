@@ -217,9 +217,21 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 .ax .nm{color:var(--muted);font-weight:700}
 .ax .nm.on{color:var(--ink);font-weight:900}
 .ax .nm.r{text-align:right}
-.ax .track{height:12px;background:var(--lilac);border-radius:99px;position:relative;overflow:hidden}
-.ax .track i{position:absolute;top:0;bottom:0;background:var(--berry);border-radius:99px}
+.ax .track{
+  height:14px;background:#EDE6FB;border:1.5px solid var(--line);
+  border-radius:99px;position:relative;overflow:hidden;
+}
+/* 真ん中の目盛り */
+.ax .track::after{
+  content:"";position:absolute;left:50%;top:2px;bottom:2px;width:2px;
+  transform:translateX(-1px);background:rgba(122,110,155,.35);
+}
+.ax .track i{
+  position:absolute;top:0;bottom:0;background:var(--berry);
+  border-radius:99px;z-index:1;
+}
 .ax .track i.right{background:var(--mint)}
+.ax .pct{font-size:11px;font-weight:900;color:var(--muted)}
 
 h3.sec{font-size:14px;font-weight:900;margin:0 0 10px;display:flex;align-items:center;gap:8px}
 h3.sec::before{content:"";width:12px;height:12px;border-radius:4px;background:var(--yolk)}
@@ -976,16 +988,22 @@ function renderResult(idx, left){
   const ax = $("rAxes");
   ax.innerHTML="";
   AXES.forEach((a,i)=>{
+    // 真ん中を 0 として、勝った側へ伸ばす
     const l = left ? left[i] : (bits[i]===0 ? 9 : 0);
-    const pct = Math.round(l/9*100);
+    const ratio = l/9;                                  // 0=右に全振り, 1=左に全振り
+    const half = Math.round(Math.abs(ratio-0.5)*2*100); // 傾きの強さ 0〜100
+    const bar = bits[i]===0
+      ? '<i style="right:50%;width:'+(half/2)+'%"></i>'
+      : '<i class="right" style="left:50%;width:'+(half/2)+'%"></i>';
     const row = document.createElement("div");
     row.className="ax";
     row.innerHTML =
       '<div class="axrow">'+
-        '<span class="nm'+(bits[i]===0?" on":"")+'">'+a.l.n+'</span>'+
-        '<span class="track"><i class="'+(bits[i]===0?"":"right")+'" style="'+
-          (bits[i]===0 ? 'left:0;width:'+pct+'%' : 'right:0;width:'+(100-pct)+'%')+'"></i></span>'+
-        '<span class="nm r'+(bits[i]===1?" on":"")+'">'+a.r.n+'</span>'+
+        '<span class="nm'+(bits[i]===0?" on":"")+'">'+a.l.n+
+          (bits[i]===0 ? ' <span class="pct">'+half+'%</span>' : '')+'</span>'+
+        '<span class="track">'+bar+'</span>'+
+        '<span class="nm r'+(bits[i]===1?" on":"")+'">'+
+          (bits[i]===1 ? '<span class="pct">'+half+'%</span> ' : '')+a.r.n+'</span>'+
       '</div>'+
       '<p class="axdesc">'+AXIS_DESC[i][bits[i]]+'</p>';
     ax.appendChild(row);

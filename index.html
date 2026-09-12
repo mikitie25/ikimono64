@@ -448,7 +448,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:30px 0 0}
       <h2>いきもの図鑑</h2>
       <button id="btnZukanClose">とじる</button>
     </div>
-    <p style="font-size:12.5px;color:var(--muted);margin:0">タップすると、そのキャラの画像生成プロンプトが出ます。</p>
+    <p style="font-size:12.5px;color:var(--muted);margin:0" id="zukanNote">タップすると、そのキャラのことが読めます。</p>
     <button class="cta ghost" id="btnAllPrompt" style="margin-top:12px">64体ぶんのプロンプトをまとめてコピー</button>
   </div>
   <div class="zgrid" id="zgrid"></div>
@@ -1077,8 +1077,13 @@ $("btnZukan").addEventListener("click",openZukan);
 $("btnZukanTop").addEventListener("click",openZukan);
 $("btnZukanClose").addEventListener("click",closeZukan);
 
-const DEV = new URLSearchParams(location.search).get("dev")==="1";
-if(!DEV) $("btnAllPrompt").classList.add("hide");
+let DEV = false;
+try { DEV = new URLSearchParams(location.search).get("dev")==="1"; } catch(e){}
+if(!DEV){
+  $("btnAllPrompt").classList.add("hide");
+} else {
+  $("zukanNote").textContent = "タップすると、そのキャラの画像生成プロンプトが出ます。";
+}
 
 let sheetIdx=-1;
 function openSheet(i){

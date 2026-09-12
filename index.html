@@ -3,11 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>いきもの64診断</title>
-<meta name="description" content="24問で、64体のいきものキャラから自分のタイプが出る診断。">
-<meta property="og:title" content="いきもの64診断">
-<meta property="og:description" content="24問で、64体のいきものキャラから自分のタイプが出る。">
+<title>いきもの64診断｜あなたの中のいきものは？</title>
+<meta name="description" content="24問、約2分。64匹のいきものから、あなたのタイプがわかる性格診断。">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="いきもの64診断">
+<meta property="og:title" content="いきもの64診断｜あなたの中のいきものは？">
+<meta property="og:description" content="24問、約2分。64匹のいきものから、あなたのタイプがわかる性格診断。">
+<meta property="og:url" content="https://mikitie25.github.io/ikimono64/">
+<meta property="og:image" content="https://mikitie25.github.io/ikimono64/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="いきもの64診断｜あなたの中のいきものは？">
+<meta name="twitter:description" content="24問、約2分。64匹のいきものから、あなたのタイプがわかる性格診断。">
+<meta name="twitter:image" content="https://mikitie25.github.io/ikimono64/img/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
@@ -268,6 +277,46 @@ h3.sec::before{content:"";width:12px;height:12px;border-radius:4px;background:va
   background:var(--paper);border-radius:26px 26px 0 0;padding:24px 20px 30px;
   max-width:480px;margin:0 auto;width:100%;max-height:86vh;overflow-y:auto;
 }
+/* ---- 結果上部のCTA ---- */
+.hero-lead{
+  text-align:center;margin:0;padding:16px 16px 0;font-size:13px;font-weight:900;
+  color:var(--muted);letter-spacing:.08em;background:var(--paper);
+}
+.card-cta{
+  margin:18px 0 2px;padding:17px;font-size:18px;border-radius:20px;
+}
+
+/* ---- ロックのチラ見せ ---- */
+.peeklist{
+  list-style:none;margin:4px 0 6px;padding:0;display:grid;gap:6px;
+  font-size:13.5px;font-weight:700;text-align:left;
+}
+.peeklist li{position:relative;padding-left:20px}
+.peeklist li::before{
+  content:"";position:absolute;left:4px;top:.58em;
+  width:8px;height:8px;border-radius:3px;background:var(--yolk);
+}
+
+/* ---- 無料でチラ見せする相性 ---- */
+.freematch{
+  display:flex;align-items:center;gap:12px;margin:0 0 20px;
+  background:var(--lilac);border:2px solid var(--line);border-radius:18px;padding:12px 14px;
+}
+.freematch .emo{font-size:34px;line-height:1}
+.freematch .txt b{display:block;font-size:11px;color:var(--muted);font-weight:900}
+.freematch .txt span{display:block;font-size:14px;font-weight:900;line-height:1.4}
+.freematch .txt small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ---- シェアカード ---- */
+.card-preview{
+  margin:14px 0 0;border-radius:18px;overflow:hidden;border:2px solid var(--ink);
+  background:var(--lilac);display:grid;place-items:center;min-height:220px;
+}
+.card-preview img{width:100%;height:auto;display:block}
+.card-loading{font-size:13px;color:var(--muted);font-weight:700;padding:70px 0}
+.card-actions{display:grid;gap:10px;margin:14px 0 0}
+.ios-note{font-size:11.5px;color:var(--muted);margin:10px 2px 0;line-height:1.7}
+
 .share-list{display:grid;gap:10px;margin:14px 0 0}
 .share-item{
   display:flex;align-items:center;gap:14px;width:100%;text-align:left;
@@ -372,12 +421,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:30px 0 0}
   <!-- ========== 結果 ========== -->
   <section id="result" class="hide">
     <div class="card">
+      <p class="hero-lead">あなたの中のいきものは…</p>
       <div class="hero-img" id="rPortrait"></div>
       <div class="card-top">
         <span class="code-chip" id="rCode"></span>
         <h2 id="rName"></h2>
         <p class="catch" id="rCatch"></p>
         <div id="rPh"><span class="ph-note">画像は仮</span></div>
+        <button class="cta card-cta" id="btnCardTop">結果カードをシェアする</button>
       </div>
       <div class="card-body">
         <p class="desc" id="rDesc"></p>
@@ -390,6 +441,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:30px 0 0}
 
         <h3 class="sec">強み</h3>
         <ul class="taglist" id="rGood"></ul>
+
+        <div id="rFreeMatch"></div>
 
         <p class="teaser" id="rTeaser"></p>
 
@@ -414,10 +467,17 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:30px 0 0}
             <div class="match" id="rMatch"></div>
           </div>
           <div class="lockover">
-            <p class="ttl">続きは、公式LINEで。</p>
-            <p class="sm">気をつけるとこ・相性のええ相手・しんどい相手が全部読めます。</p>
-            <button class="line-btn" id="btnLine">公式LINEを追加して読む</button>
-            <p class="sm" style="margin-top:4px">追加したら、届いた合言葉を入れてください</p>
+            <p class="ttl">🔒 ここから先は完全版</p>
+            <ul class="peeklist">
+              <li>人との距離のとり方</li>
+              <li>仕事のしかた</li>
+              <li>余裕が無くなると</li>
+              <li>伸びしろ</li>
+              <li>気をつけるところ</li>
+              <li>相性のいいタイプ／噛み合いにくいタイプ</li>
+            </ul>
+            <button class="line-btn" id="btnLine">完全版をひらく</button>
+            <p class="sm" style="margin-top:2px">公式LINEを追加すると合言葉が届きます</p>
             <div class="passrow">
               <input id="passInput" type="text" placeholder="あいことば" autocomplete="off">
               <button id="btnPass">解除</button>
@@ -428,7 +488,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:30px 0 0}
     </div>
 
     <div class="shares">
-      <button class="cta" id="btnShare">SNSでシェア</button>
+      <button class="cta" id="btnCard">結果カードをシェアする</button>
       <button class="cta mint" id="btnShareLine">LINEで送る</button>
       <button class="cta ghost" id="btnCopy">結果のリンクをコピー</button>
       <button class="cta ghost" id="btnZukan">64体ぜんぶ見る</button>
@@ -452,6 +512,31 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:30px 0 0}
     <button class="cta ghost" id="btnAllPrompt" style="margin-top:12px">64体ぶんのプロンプトをまとめてコピー</button>
   </div>
   <div class="zgrid" id="zgrid"></div>
+</div>
+
+<div class="sheet hide" id="cardSheet">
+  <div class="sheet-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 4px">
+      <div style="font-size:20px;font-weight:900">結果カード</div>
+      <button id="btnCardClose" style="font-weight:900;padding:6px 10px">×</button>
+    </div>
+    <p style="font-size:12.5px;color:var(--muted);margin:2px 0 0">
+      ストーリーにそのまま貼れる縦長サイズです。
+    </p>
+
+    <div class="card-preview" id="cardPreview">
+      <div class="card-loading" id="cardLoading">つくってます…</div>
+    </div>
+
+    <div class="card-actions">
+      <button class="cta" id="btnCardSave">画像を保存する</button>
+      <button class="cta mint" id="btnCardShare">SNSでシェア</button>
+      <button class="cta ghost" id="btnCardCopy">リンクをコピー</button>
+    </div>
+    <p class="ios-note" id="iosNote">
+      保存できんときは、上の画像を<b>長押し</b>して「写真に保存」でもいけます。
+    </p>
+  </div>
 </div>
 
 <div class="sheet hide" id="shareSheet">
@@ -830,8 +915,12 @@ function pick(v){
 $("chA").addEventListener("click",()=>pick(0));
 $("chB").addEventListener("click",()=>pick(1));
 $("btnBack").addEventListener("click",()=>{ if(cur>0){ cur--; renderQ(); } });
-$("btnStart").addEventListener("click",()=>{ cur=0; answers.fill(null); show("quiz"); renderQ(); });
+$("btnStart").addEventListener("click",()=>{
+  track("quiz_start");
+  cur=0; answers.fill(null); show("quiz"); renderQ();
+});
 $("btnRetry").addEventListener("click",()=>{
+  track("retry_click");
   setUrl(location.pathname);
   cur=0; answers.fill(null); show("start"); window.scrollTo(0,0);
 });
@@ -855,10 +944,13 @@ function finish(){
   const idx = bitsToIdx(bits);
   renderResult(idx,left);
   setUrl("?t="+idxToCode(idx));
+  track("quiz_complete");
+  track("result_view", { from:"quiz" });
 }
 
 /* ---------- 結果 ---------- */
 function renderResult(idx, left){
+  lastLeft = left;
   const t = TYPES[idx];
   const code = idxToCode(idx);
   const bits = idxToBits(idx);
@@ -917,6 +1009,16 @@ function renderResult(idx, left){
     b.addEventListener("click",()=>{ if(!CONFIG.LOCK || isUnlocked()) openSheet(+b.dataset.i); });
   });
 
+  // ロック前でも、相性◎だけは見せる
+  const mateIdx = idx ^ 0b010101;
+  $("rFreeMatch").innerHTML =
+    '<div class="freematch">'+
+      '<span class="emo">'+TYPES[mateIdx].e+'</span>'+
+      '<span class="txt"><b>相性◎</b><span>'+TYPES[mateIdx].n+'</span>'+
+      (CONFIG.LOCK && !isUnlocked() ? '<small>のこりの相性は完全版で</small>' : '')+
+      '</span>'+
+    '</div>';
+
   applyLock();
 
   show("result");
@@ -931,6 +1033,7 @@ function matchBtn(lbl, i){
 }
 
 let currentIdx = -1;
+let lastLeft = null;
 
 /* ---------- 画像の読み込み（無ければ絵文字のまま） ---------- */
 function setImg(box, src, t, phEl){
@@ -957,6 +1060,7 @@ function applyLock(){
   else { w.classList.add("on"); $("rTeaser").classList.remove("hide"); }
 }
 $("btnLine").addEventListener("click",()=>{
+  track("line_unlock_click");
   window.open(CONFIG.LINE_URL,"_blank");
 });
 // 全角の数字・英字・スペースを半角に寄せてから照合する。
@@ -972,6 +1076,8 @@ $("btnPass").addEventListener("click",()=>{
   const v = normPass($("passInput").value);
   if(v === normPass(CONFIG.PASS)){
     setUnlocked(); applyLock(); toast("解除しました");
+    track("unlock_success");
+    if(currentIdx>=0) renderResult(currentIdx, lastLeft);
     $("lockwrap").scrollIntoView({behavior:"smooth",block:"center"});
   } else {
     toast("合言葉がちがいます");
@@ -998,12 +1104,14 @@ $("shareSheet").addEventListener("click",e=>{ if(e.target===$("shareSheet")) clo
 if(!navigator.share) $("toNative").classList.add("hide");
 
 $("toX").addEventListener("click",()=>{
+  track("share_click", { to:"x" });
   closeShare();
   window.open("https://twitter.com/intent/tweet?text="+
     encodeURIComponent(shareText())+"&url="+encodeURIComponent(shareUrl()),"_blank");
 });
 
 $("toThreads").addEventListener("click",()=>{
+  track("share_click", { to:"threads" });
   closeShare();
   window.open("https://www.threads.net/intent/post?text="+
     encodeURIComponent(shareText()+"\n"+shareUrl()),"_blank");
@@ -1011,12 +1119,14 @@ $("toThreads").addEventListener("click",()=>{
 
 // Instagramは外から投稿画面に文字を入れられん。コピーしてから開く。
 $("toInsta").addEventListener("click",()=>{
+  track("share_click", { to:"instagram" });
   copy(shareText()+"\n"+shareUrl(), "コピーしました。Instagramで貼り付けてください");
   closeShare();
   setTimeout(()=>window.open("https://www.instagram.com/","_blank"), 700);
 });
 
 $("toNative").addEventListener("click",async ()=>{
+  track("share_click", { to:"native" });
   closeShare();
   try {
     await navigator.share({
@@ -1028,10 +1138,14 @@ $("toNative").addEventListener("click",async ()=>{
 });
 
 $("btnShareLine").addEventListener("click",()=>{
+  track("share_click", { to:"line" });
   window.open("https://social-plugins.line.me/lineit/share?url="+
     encodeURIComponent(shareUrl())+"&text="+encodeURIComponent(shareText()),"_blank");
 });
-$("btnCopy").addEventListener("click",()=>copy(shareUrl(),"リンクをコピーしました"));
+$("btnCopy").addEventListener("click",()=>{
+  track("share_click", { to:"copy_link" });
+  copy(shareUrl(),"リンクをコピーしました");
+});
 
 function copy(text,msg){
   const done = ()=>toast(msg);
@@ -1071,7 +1185,7 @@ function renderZukan(){
     b.addEventListener("click",()=>openSheet(+b.dataset.i));
   });
 }
-function openZukan(){ renderZukan(); $("zukan").classList.remove("hide"); document.body.style.overflow="hidden"; }
+function openZukan(){ track("all_chars_click"); renderZukan(); $("zukan").classList.remove("hide"); document.body.style.overflow="hidden"; }
 function closeZukan(){ $("zukan").classList.add("hide"); document.body.style.overflow=""; }
 $("btnZukan").addEventListener("click",openZukan);
 $("btnZukanTop").addEventListener("click",openZukan);
@@ -1114,12 +1228,304 @@ $("btnAllPrompt").addEventListener("click",()=>{
   copy(all,"64体ぶん、コピーしました");
 });
 
+/* =========================================================
+   計測（GA4）
+   gtag がまだ無くても呼べる。あとから入れたら溜めた分が流れる。
+   ========================================================= */
+window.dataLayer = window.dataLayer || [];
+const TRACK_QUEUE = [];
+function track(name, params){
+  const p = Object.assign({}, params || {});
+  if(currentIdx >= 0 && TYPES[currentIdx]){
+    p.type_code = idxToCode(currentIdx);
+    p.type_name = TYPES[currentIdx].n;
+  }
+  if(typeof window.gtag === "function"){
+    while(TRACK_QUEUE.length){ const q = TRACK_QUEUE.shift(); window.gtag("event", q[0], q[1]); }
+    window.gtag("event", name, p);
+  } else {
+    TRACK_QUEUE.push([name, p]);
+    if(TRACK_QUEUE.length > 50) TRACK_QUEUE.shift();
+  }
+}
+
+/* =========================================================
+   シェアカード（1080×1920）
+   キャラ画像はそのまま使う。背景色は画像から拾う。
+   ========================================================= */
+const CARD_W = 1080, CARD_H = 1920;
+let cardBlob = null, cardUrl = null, cardBuiltFor = -1;
+
+function loadImg(src){
+  return new Promise((ok, ng)=>{
+    const im = new Image();
+    im.onload = ()=>ok(im);
+    im.onerror = ()=>ng(new Error("画像が読めん: "+src));
+    im.src = src;
+  });
+}
+
+function rgbToHsl(r,g,b){
+  r/=255; g/=255; b/=255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b);
+  let h=0, s=0; const l=(mx+mn)/2;
+  if(mx!==mn){
+    const d=mx-mn;
+    s = l>0.5 ? d/(2-mx-mn) : d/(mx+mn);
+    if(mx===r) h=(g-b)/d+(g<b?6:0);
+    else if(mx===g) h=(b-r)/d+2;
+    else h=(r-g)/d+4;
+    h/=6;
+  }
+  return [h*360, s, l];
+}
+
+// 画像から背景テーマを決める。読めんかったら無難な色に落とす。
+function pickTheme(img, bits){
+  let h=265, sat=0.35, lum=0.55;
+  try{
+    const c = document.createElement("canvas");
+    c.width = c.height = 32;
+    const x = c.getContext("2d", { willReadFrequently:true });
+    x.drawImage(img, 0, 0, 32, 32);
+    const d = x.getImageData(0,0,32,32).data;
+    let sx=0, sy=0, ss=0, sl=0, n=0;
+    for(let i=0;i<d.length;i+=4){
+      const [hh,s2,l2] = rgbToHsl(d[i],d[i+1],d[i+2]);
+      const w = 0.25 + s2;           // 鮮やかな画素を重めに見る
+      const rad = hh*Math.PI/180;
+      sx += Math.cos(rad)*w; sy += Math.sin(rad)*w;
+      ss += s2*w; sl += l2; n += w;
+    }
+    h = (Math.atan2(sy,sx)*180/Math.PI + 360) % 360;
+    sat = Math.min(0.62, Math.max(0.24, ss/n));
+    lum = sl/(d.length/4);
+  }catch(e){ /* file:// だと読めん。既定色で進める */ }
+
+  const dark = lum < 0.5;
+  const hsl = (hh,ss2,ll)=>"hsl("+((hh%360+360)%360).toFixed(0)+","+(ss2*100).toFixed(0)+"%,"+(ll*100).toFixed(0)+"%)";
+  return {
+    dark,
+    bg1: dark ? hsl(h, sat, 0.17) : hsl(h, sat*0.7, 0.90),
+    bg2: dark ? hsl(h+22, sat, 0.34) : hsl(h+22, sat*0.8, 0.74),
+    ink: dark ? "#FFFFFF" : "#2B2140",
+    sub: dark ? "rgba(255,255,255,.72)" : "rgba(43,33,64,.62)",
+    chip: dark ? "rgba(255,255,255,.16)" : "rgba(255,255,255,.72)",
+    deco: dark ? "rgba(255,255,255,.16)" : "rgba(43,33,64,.10)",
+    kind: ["star","bubble","leaf","dot"][bits[1]*2 + bits[4]]
+  };
+}
+
+function roundRect(x, rx, ry, w, h, r){
+  x.beginPath();
+  x.moveTo(rx+r, ry);
+  x.arcTo(rx+w, ry,   rx+w, ry+h, r);
+  x.arcTo(rx+w, ry+h, rx,   ry+h, r);
+  x.arcTo(rx,   ry+h, rx,   ry,   r);
+  x.arcTo(rx,   ry,   rx+w, ry,   r);
+  x.closePath();
+}
+
+function drawDeco(x, th){
+  x.save();
+  x.fillStyle = th.deco;
+  x.strokeStyle = th.deco;
+  let seed = 20260912;
+  const rnd = ()=>{ seed = (seed*1103515245 + 12345) & 0x7fffffff; return seed/0x7fffffff; };
+  for(let i=0;i<46;i++){
+    const px = rnd()*CARD_W, py = rnd()*CARD_H, sz = 8 + rnd()*26;
+    if(th.kind === "star"){
+      x.beginPath();
+      for(let k=0;k<10;k++){
+        const r = k%2 ? sz*0.42 : sz;
+        const a = -Math.PI/2 + k*Math.PI/5;
+        k ? x.lineTo(px+Math.cos(a)*r, py+Math.sin(a)*r)
+          : x.moveTo(px+Math.cos(a)*r, py+Math.sin(a)*r);
+      }
+      x.closePath(); x.fill();
+    } else if(th.kind === "bubble"){
+      x.lineWidth = 3;
+      x.beginPath(); x.arc(px, py, sz, 0, Math.PI*2); x.stroke();
+    } else if(th.kind === "leaf"){
+      x.save(); x.translate(px,py); x.rotate(rnd()*Math.PI*2);
+      x.beginPath();
+      x.moveTo(0,-sz); x.quadraticCurveTo(sz*0.75,0, 0,sz);
+      x.quadraticCurveTo(-sz*0.75,0, 0,-sz);
+      x.fill(); x.restore();
+    } else {
+      x.beginPath(); x.arc(px, py, sz*0.34, 0, Math.PI*2); x.fill();
+    }
+  }
+  x.restore();
+}
+
+// 2行まで折り返し、はみ出すなら文字を小さくする
+function fitLines(x, text, maxW, size, weight){
+  let fs = size;
+  for(let guard=0; guard<40; guard++){
+    x.font = weight+' '+fs+'px "Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif';
+    if(x.measureText(text).width <= maxW) return { lines:[text], fs };
+    // 真ん中あたりで2行に割る
+    // 助詞や小文字で行が始まると読みにくいので、そこでは割らん
+    const NG = "のがをにへとでもはやねよわらりるれろっゃゅょーぁぃぅぇぉ、。";
+    let best = null;
+    for(let pass=0; pass<2 && !best; pass++){
+      for(let i=1;i<text.length;i++){
+        if(pass===0 && NG.indexOf(text[i]) >= 0) continue;
+        const a = text.slice(0,i), b = text.slice(i);
+        const w = Math.max(x.measureText(a).width, x.measureText(b).width);
+        if(w <= maxW && (!best || Math.abs(a.length-b.length) < best.d)){
+          best = { lines:[a,b], d:Math.abs(a.length-b.length) };
+        }
+      }
+    }
+    if(best) return { lines:best.lines, fs };
+    fs -= 3;
+    if(fs < 26) break;
+  }
+  x.font = weight+' '+fs+'px "Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif';
+  return { lines:[text], fs };
+}
+
+async function buildCard(idx){
+  const t = TYPES[idx], code = idxToCode(idx), bits = idxToBits(idx);
+  try { await document.fonts.ready; } catch(e){}
+
+  let img = null;
+  try { img = await loadImg("img/chars/"+code+".png"); } catch(e){ /* 絵文字で代用 */ }
+
+  const th = pickTheme(img || {}, bits);
+  const c = document.createElement("canvas");
+  c.width = CARD_W; c.height = CARD_H;
+  const x = c.getContext("2d");
+
+  const g = x.createLinearGradient(0,0,0,CARD_H);
+  g.addColorStop(0, th.bg1); g.addColorStop(1, th.bg2);
+  x.fillStyle = g; x.fillRect(0,0,CARD_W,CARD_H);
+  drawDeco(x, th);
+
+  x.textAlign = "center"; x.textBaseline = "top";
+  const F = (sz,w)=>{ x.font = w+' '+sz+'px "Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif'; };
+
+  x.fillStyle = th.sub; F(40,900); x.fillText("いきもの64診断", CARD_W/2, 120);
+  F(34,700);                        x.fillText("あなたは…",      CARD_W/2, 196);
+
+  // キャラ画像
+  const IW = 860, IX = (CARD_W-IW)/2, IY = 280;
+  x.save();
+  x.shadowColor = "rgba(0,0,0,.28)"; x.shadowBlur = 46; x.shadowOffsetY = 18;
+  roundRect(x, IX, IY, IW, IW, 58); x.fillStyle = "#fff"; x.fill();
+  x.restore();
+  x.save();
+  roundRect(x, IX+10, IY+10, IW-20, IW-20, 50); x.clip();
+  if(img){ x.drawImage(img, IX+10, IY+10, IW-20, IW-20); }
+  else {
+    x.fillStyle = "#EFE8FF"; x.fillRect(IX+10, IY+10, IW-20, IW-20);
+    x.fillStyle = "#2B2140"; x.textBaseline = "middle"; F(300,900);
+    x.fillText(t.e, CARD_W/2, IY+IW/2); x.textBaseline = "top";
+  }
+  x.restore();
+
+  let y = IY + IW + 90;
+
+  x.fillStyle = th.ink;
+  const nm = fitLines(x, t.n, 900, 86, "900");
+  nm.lines.forEach(L=>{ x.fillText(L, CARD_W/2, y); y += nm.fs*1.22; });
+
+  y += 18;
+  x.fillStyle = th.sub;
+  const ct = fitLines(x, t.c, 900, 44, "700");
+  ct.lines.forEach(L=>{ x.fillText(L, CARD_W/2, y); y += ct.fs*1.3; });
+
+  // 相性◎をひとつだけ
+  y += 34;
+  const mate = TYPES[idx ^ 0b010101];
+  F(36,900);
+  const label = "相性◎  " + mate.e + " " + mate.n;
+  const pw = Math.min(940, x.measureText(label).width + 76);
+  roundRect(x, (CARD_W-pw)/2, y, pw, 86, 43);
+  x.fillStyle = th.chip; x.fill();
+  x.fillStyle = th.ink; x.textBaseline = "middle";
+  x.fillText(label, CARD_W/2, y+45);
+  x.textBaseline = "top";
+
+  // 下部
+  x.fillStyle = th.ink; F(44,900); x.fillText("あなたは64匹のどれ？", CARD_W/2, 1706);
+  x.fillStyle = th.sub; F(38,700); x.fillText("#いきもの64診断",     CARD_W/2, 1780);
+  F(26,400);                       x.fillText(code,                  CARD_W/2, 1844);
+
+  return c;
+}
+
+/* ---------- カードのモーダル ---------- */
+async function openCardSheet(){
+  $("cardSheet").classList.remove("hide");
+  track("share_card_open");
+  if(cardBuiltFor === currentIdx && cardUrl) return;
+
+  const box = $("cardPreview");
+  box.innerHTML = '<div class="card-loading" id="cardLoading">つくってます…</div>';
+  cardBlob = null;
+  if(cardUrl){ URL.revokeObjectURL(cardUrl); cardUrl = null; }
+
+  try{
+    const canvas = await buildCard(currentIdx);
+    const blob = await new Promise(r=>canvas.toBlob(r, "image/png"));
+    if(!blob) throw new Error("画像にできんかった");
+    cardBlob = blob;
+    cardUrl = URL.createObjectURL(blob);
+    cardBuiltFor = currentIdx;
+    const im = new Image();
+    im.alt = TYPES[currentIdx].n + " の結果カード";
+    im.src = cardUrl;
+    box.innerHTML = ""; box.appendChild(im);
+  }catch(e){
+    box.innerHTML = '<div class="card-loading">カードが作れませんでした。<br>' +
+      'ページを開き直してもう一度おためしください。</div>';
+  }
+}
+function closeCardSheet(){ $("cardSheet").classList.add("hide"); }
+
+$("btnCard").addEventListener("click", openCardSheet);
+$("btnCardTop").addEventListener("click", openCardSheet);
+$("btnCardClose").addEventListener("click", closeCardSheet);
+$("cardSheet").addEventListener("click", e=>{ if(e.target===$("cardSheet")) closeCardSheet(); });
+
+function cardFileName(){ return "ikimono64-" + idxToCode(currentIdx) + ".png"; }
+
+$("btnCardSave").addEventListener("click", async ()=>{
+  if(!cardBlob){ toast("まだ準備中です"); return; }
+  track("share_download");
+  const file = new File([cardBlob], cardFileName(), { type:"image/png" });
+  // スマホは共有メニュー（写真に保存・Instagram等が選べる）
+  if(navigator.canShare && navigator.canShare({ files:[file] })){
+    try{
+      await navigator.share({ files:[file], text: shareText(), title:"いきもの64診断" });
+      track("share_click", { to:"native_file" });
+      return;
+    }catch(e){ /* やめただけ。下の保存に落とす */ }
+  }
+  const a = document.createElement("a");
+  a.href = cardUrl; a.download = cardFileName();
+  document.body.appendChild(a); a.click(); a.remove();
+  toast("画像を保存しました");
+});
+
+$("btnCardShare").addEventListener("click", ()=>{
+  closeCardSheet();
+  $("shareSheet").classList.remove("hide");
+});
+$("btnCardCopy").addEventListener("click", ()=>{
+  track("share_click", { to:"copy_link" });
+  copy(shareUrl(), "リンクをコピーしました");
+});
+
 /* ---------- 結果リンクで開いたとき ---------- */
 (function fromUrl(){
   try {
     const code = new URLSearchParams(location.search).get("t");
     const i = codeToIdx(code||"");
-    if(i>=0){ renderResult(i,null); }
+    if(i>=0){ renderResult(i,null); track("result_view", { from:"link" }); }
   } catch(e){ /* URLが読めん環境でも、はじめから普通に使える */ }
 })();
 </script>

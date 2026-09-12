@@ -195,10 +195,16 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 .card-top p.catch{margin:0;font-size:15px;color:var(--muted);font-weight:700}
 
 .card-body{padding:22px 20px 26px}
-.desc{margin:0 0 22px;font-size:15.5px}
+.desc{margin:0 0 24px;font-size:15.5px}
+.para{margin:0 0 24px;font-size:15px;line-height:1.95}
 
-.axes{display:grid;gap:10px;margin:0 0 24px}
-.ax{display:grid;grid-template-columns:68px 1fr 68px;align-items:center;gap:8px;font-size:12px}
+.axes{display:grid;gap:16px;margin:0 0 26px}
+.ax{display:block}
+.axrow{display:grid;grid-template-columns:68px 1fr 68px;align-items:center;gap:8px;font-size:12px}
+.axdesc{
+  margin:8px 2px 0;font-size:13px;line-height:1.85;color:#5B4E7C;
+  border-left:3px solid var(--line);padding-left:10px;
+}
 .ax .nm{color:var(--muted);font-weight:700}
 .ax .nm.on{color:var(--ink);font-weight:900}
 .ax .nm.r{text-align:right}
@@ -376,6 +382,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:30px 0 0}
       <div class="card-body">
         <p class="desc" id="rDesc"></p>
 
+        <h3 class="sec">こういう人</h3>
+        <p class="para" id="rDeep"></p>
+
         <h3 class="sec">6つの傾き</h3>
         <div class="axes" id="rAxes"></div>
 
@@ -386,8 +395,21 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:30px 0 0}
 
         <div class="lockwrap on" id="lockwrap">
           <div class="lockbody">
-            <h3 class="sec" style="margin-top:18px">気をつけるとこ</h3>
+            <h3 class="sec" style="margin-top:18px">人との距離のとり方</h3>
+            <p class="para" id="rDist"></p>
+
+            <h3 class="sec">仕事のしかた</h3>
+            <p class="para" id="rWork"></p>
+
+            <h3 class="sec">余裕が無くなると</h3>
+            <p class="para" id="rStress"></p>
+
+            <h3 class="sec">伸びしろ</h3>
+            <p class="para" id="rGrow"></p>
+
+            <h3 class="sec">気をつけるとこ</h3>
             <div class="caution" id="rWeak"></div>
+
             <h3 class="sec">相性</h3>
             <div class="match" id="rMatch"></div>
           </div>
@@ -503,6 +525,48 @@ const AXES = [
   { l:{c:"O", n:"じぶん"},   r:{c:"T", n:"みんな"}   }
 ];
 
+/* 6軸それぞれの意味。該当する側だけ結果に出る */
+const AXIS_DESC = [
+  ["人と話しながらエネルギーが増える。外に出すことで考えがまとまる。黙って一人でいる時間が続くと、逆に調子が落ちる。",
+   "一人の時間で充電する。外に出す前に、頭の中で組み立て終えたい。人と会った日は、その分だけ回復の時間がいる。"],
+  ["まだ無いものを考えるのが好き。話が自然と未来と可能性に向かう。細かい事実より、全体の形を先につかむ。",
+   "事実と前例から入る。いま目の前で起きてることを信じるから、判断がぶれにくい。空想より、確かめられるものを扱いたい。"],
+  ["筋が通ってるかで判断する。感情より先に、構造のほうを見てしまう。冷たいわけやなくて、それがいちばん誠実だと思ってる。",
+   "誰がどう感じるかで判断する。正しさより、納得できるかを大事にする。理屈で勝っても場が壊れたら意味が無いと知ってる。"],
+  ["決まってると落ち着く。先に段取りを作ってから動きたいし、予定が見えてる状態でいちばん力が出る。",
+   "決めすぎると窮屈になる。その場で判断するほうが力が出るし、予定が変わっても平気どころか少し楽しい。"],
+  ["確証が無くても飛べる。失敗を損やなくて経験として数えられるから、動き出しがとにかく早い。",
+   "読めない状況を減らしてから進みたい。固めるぶん遅く見えるけど、そのかわり大崩れせえへん。"],
+  ["自分の基準で決めたい。納得できん妥協はしたくないし、成果は自分の名前で出したい。",
+   "全体が良くなるほうを選ぶ。一人勝ちより、一緒に勝ちたい。自分の取り分は後回しになりがち。"]
+];
+
+/* 軸の組み合わせで出る解説。タイプごとに中身が変わる */
+const COMBO_WORK = {
+  PC:"計画を立てたうえで、大胆に賭ける。準備した状態で攻めるときにいちばん強い。逆に、何も決まってない状態で急かされると力が出にくい。",
+  PS:"段取りを固めて、堅く積む。読める状態を作ってから進むので、事故がいちばん少ないタイプ。急な仕様変更には弱い。",
+  FC:"走りながら決めて、走りながら賭ける。初速では誰にも負けん。ただ、終わらせる日を決めとかんと、やりかけばかりが増える。",
+  FS:"その場で判断するけど、無茶はせん。状況を見ながら安全な手を選べる器用さがある。長期の計画づくりは人に任せたほうが早い。"
+};
+const COMBO_DIST = {
+  EO:"人の中にはおるけど、自分の旗は下ろさん。はっきり意見を言うから目立つし、敵も味方もできやすい。",
+  ET:"人と一緒におること自体が力になる。場をまとめる役が自然と回ってきて、それを苦にせん。",
+  IO:"一人の時間と自分の基準、この二つが守れてるときがいちばん強い。無理に群れんでええタイプ。",
+  IT:"静かやけど、人のことをよう見てる。前に出ずにチームを支えるのが上手く、いなくなって初めて有り難みが分かる。"
+};
+const COMBO_STRESS = {
+  LE:"余裕が無くなると、言い方がきつくなる。正論で押し切ろうとして、あとから後悔する。",
+  LI:"余裕が無くなると、口数が減って一人で抱える。説明そのものを省き始めるのが危険信号。",
+  HE:"余裕が無くなると、人の反応が過剰に気になる。嫌われたかどうかで頭がいっぱいになる。",
+  HI:"余裕が無くなると、自分が悪いほうへ考え込む。しんどいと言えんまま溜めてしまう。"
+};
+const COMBO_GROW = {
+  NP:"思いつきを段取りに落とせるのが強み。あとは、完璧になる前に一回出す癖をつけるだけで一段上がる。",
+  NF:"発想も動きも速い。終わらせる日を先に決めておくだけで、成果が一気に積み上がる。",
+  RP:"堅実で抜けがない。たまに前例の無い手を試すと、そこから伸びしろが一気に開く。",
+  RF:"現場での対応が上手い。記録を残す癖をつけるだけで、同じ力が次からもっと効くようになる。"
+};
+
 const QUESTIONS = [
   {a:0,w:3,q:"初対面ばっかりの集まりに着いた。まずどうする？", A:"自分から話しかけにいく", B:"誰か話しかけてくれるのを待つ"},
   {a:1,w:3,q:"新しい企画をやることになった。まず何する？", A:"おもしろい形を頭の中で組み立てる", B:"前例と数字を調べる"},
@@ -535,70 +599,70 @@ const QUESTIONS = [
 
 /* TYPES は 6軸のビット順（E/I, N/R, L/H, P/F, C/S, O/T）で 0〜63 番地に並ぶ */
 const TYPES = [
-{n:"旗を立てたがるドラゴン",e:"🐉",en:"dragon",v:"standing on a rock, planting a huge flag, wind blowing",sc:"on a windswept cliff at sunrise, gold and pale blue",c:"旗を立てて、振り返らずに進む。",d:"先が見えてへんうちから旗を立てられる人。構想も判断も速いぶん、周りが追いつく前に一人で先に着いてしまう。",g:["構想から実行までが速い","決めきる胆力"],w:"説明を省きがち。頭の中の三歩先を、言葉にして渡すだけで味方が増える。"},
-{n:"先頭しか走らんオオカミ",e:"🐺",en:"wolf",v:"wearing a captain's armband, running one step ahead of the pack",sc:"on a snowy ridge at dawn, deep indigo and white",c:"群れの一歩前を走る。",d:"仲間を勝たせるために先頭を走るタイプ。理屈と情の両方で人を動かせる、数の少ないタイプ。",g:["人を巻き込む力","勝ち筋を描ける"],w:"背負いすぎる。しんどい時に「しんどい」と言えるかが分かれ目。"},
-{n:"ノートびっしりのカラス",e:"🐦",en:"crow",v:"hugging a thick notebook packed with tiny diagrams",sc:"in a dim study covered in pinned diagrams, lamp light, sepia and navy",c:"盛り上がる前に、図面を引いてる。",d:"アイデアは派手やのに、出す前に必ず筋を通す慎重派。外では明るいが、頭の中はずっと検算中。",g:["抜けの少ない設計","場に流されない判断"],w:"完璧になるまで出さん。6割でも見せたほうが早く進むことは多い。"},
-{n:"ホワイトボード前のシャチ",e:"🐋",en:"orca",v:"standing in front of a small whiteboard, holding a pointer stick",sc:"in a bright meeting room with a whiteboard, mint and white",c:"全体を見て、配置を決める。",d:"流れを読んで人を置くのが上手い。自分が目立たんでも、チームが勝てばそれでいいと思ってる。",g:["全体最適が見える","安心感のある指揮"],w:"自分の希望を言わん。たまには自分の取り分も主張してええ。"},
-{n:"靴ひもほどけたまま走るチーター",e:"🐆",en:"cheetah",v:"sprinting with untied shoelaces, tiny speed sparks behind",sc:"on a sunlit running track, vivid orange and yellow",c:"思いついた瞬間には走り出してる。",d:"速さが武器。考えるより先に形にして、走りながら直していく。初速だけは誰にも負けん。",g:["初速がとにかく速い","切り替えが早い"],w:"やりかけが増える。終わらせる日を先に決めとくと化ける。"},
-{n:"メガホン持ったライオン",e:"🦁",en:"lion",v:"holding a megaphone, mouth wide open mid-shout",sc:"on a stage under warm spotlights, red and gold",c:"「行くぞ」の一言で、場が動く。",d:"勢いと理屈を同時に出せる珍しいタイプ。細かい計画より、現場の号令で全部回してしまう。",g:["場を一瞬で動かす","土壇場に強い"],w:"準備を軽く見る。ここだけ人に任せたら、相当強い。"},
-{n:"裏道から来るキツネ",e:"🦊",en:"fox",v:"peeking out of a narrow alley, holding a map with a red shortcut line",sc:"in a narrow lantern-lit back alley at night, purple and amber",c:"正面からは行かへん。",d:"いちばんラクで、いちばん効く道を探すのが得意。派手に動くより、うまい手を一発で決めたい。",g:["攻略ルートを見つける","無駄を嫌う"],w:"手を抜いてると誤解されがち。考えてる過程を少し見せるといい。"},
-{n:"分解して戻せへんアライグマ",e:"🦝",en:"raccoon",v:"sitting in a pile of screws and toy parts, holding a screwdriver",sc:"in a cluttered workshop floor of scattered parts, teal and rust",c:"まず試す。だいたい壊す。",d:"気になったら触らずにおれん性分。壊しながら仕組みを覚えていくから、身につくのが異常に速い。",g:["検証が速い","手を動かすのが苦にならない"],w:"元に戻せんくなる。触る前のバックアップだけは癖にしとこ。"},
-{n:"夢の話ばっかりするユニコーン",e:"🦄",en:"unicorn",v:"pointing up at a floating soap-bubble castle",sc:"in a starry night meadow, lavender and silver",c:"まだ見えてない景色の話をする。",d:"理想を語って、それを本気で取りに行く人。周りが笑っても、一人で歩き出せる強さがある。",g:["ビジョンを言葉にできる","折れにくい"],w:"現実の数字を後回しにする。夢の隣に電卓を置いとくだけで強い。"},
-{n:"灯りぶら下げたイルカ",e:"🐬",en:"dolphin",v:"carrying a glowing lantern, tail up",sc:"by the sea at dusk with a lighthouse beam, teal and apricot",c:"暗いとき、人がこっちに向かってくる。",d:"明るさと段取りを両方持ってる。誰かのために動いてるときに、いちばん力が出るタイプ。",g:["人が自然と集まる","面倒見と計画性の両立"],w:"自分の充電を忘れる。光り続けるには燃料がいる。"},
-{n:"雲の上まで見えるキリン",e:"🦒",en:"giraffe",v:"neck above small clouds, tiny telescope in hand",sc:"above a soft sea of clouds at noon, pale blue and cream",c:"高いところから、やさしく話す。",d:"遠くまで見えてるのに、押しつけずに伝えられる。人の話を聞いてから動くので、まず信用される。",g:["伝える力","視野が広い"],w:"動き出すまでが長い。見えてる時点で半分終わってる、と思っていい。"},
-{n:"みんなの荷物持つゾウ",e:"🐘",en:"elephant",v:"carrying five backpacks at once, still smiling",sc:"on a busy station platform, warm beige and soft green",c:"みんなの分まで、ちゃんと覚えてる。",d:"段取りも気配りも抜けがない。誰が何に困ってたか全部覚えてるから、いつのまにか頼られてる。",g:["圧倒的な信頼感","抜けのない準備"],w:"頼まれごとを断れん。抱えてる量を一回書き出したほうがいい。"},
-{n:"両手いっぱいこぼすリス",e:"🐿️",en:"squirrel",v:"cheeks stuffed, arms full of acorns, dropping a few",sc:"on an autumn forest floor of fallen leaves, amber and brown",c:"楽しそうなほうへ、全力で。",d:"好奇心のまま跳ねまわる。気分が乗ってるときの爆発力は、誰にも止められへん。",g:["場を明るくする","瞬間の集中力"],w:"興味が移るのが速い。ひとつ終わらせてから次、が効く。"},
-{n:"勝手に人集めるオウム",e:"🦜",en:"parrot",v:"blowing a party horn, confetti in the air",sc:"at a rooftop party with paper lanterns, hot pink and turquoise",c:"とりあえず、みんな呼ぼ。",d:"人と騒ぐのが燃料。計画より空気で動くのに、なぜかちゃんと形になってしまう。",g:["人を呼べる","ノリで壁を越える"],w:"あとから段取りに泣く。前日の確認だけは、しとこ。"},
-{n:"呼んでも来うへんネコ",e:"🐱",en:"cat",v:"lying flat on a laptop keyboard, looking the other way",sc:"on a messy desk by a window in late afternoon, warm orange light",c:"自分のペースで、そばにおる。",d:"人は好きやけど束縛は無理。気が向いたときの集中力と愛想は、掛け値なしに本物。",g:["独特の距離感","素直な感性"],w:"気分に左右される。乗らん日に何をするか決めとくとラク。"},
-{n:"しっぽ止まらんシバイヌ",e:"🐕",en:"shiba dog",v:"tail blurred with motion, huge open-mouth smile",sc:"in a sunny park on green grass, bright blue sky",c:"うれしいが、そのまま出る。",d:"感情が全部おもてに出るぶん、まわりも素直になれる。裏表がないのが最大の武器。",g:["場の空気をほどく","信頼されやすい"],w:"隠しごとができん。ポーカーフェイスが要る場面は人に任せよ。"},
-{n:"曲がられへんサイ",e:"🦏",en:"rhino",v:"charging dead straight, dust cloud behind",sc:"on a dry straight road at midday, ochre and dusty blue",c:"決めたら、まっすぐ。",d:"現実を見て決めて、あとは止まらん。理屈で納得さえできれば、一直線に走りきる。",g:["推進力","ブレない"],w:"方向転換が苦手。走る前の一分だけ、地図を見よ。"},
-{n:"ヘルメットかぶったクマ",e:"🐻",en:"bear",v:"wearing a construction helmet, clipboard under one arm",sc:"at a construction site in the morning, yellow and grey",c:"段取り八分、あとは腕。",d:"準備と現場の両方ができる実務型。数字と人、どっちも見て回せるから現場が荒れへん。",g:["実行の精度","頼られる安定感"],w:"抱え込む。渡せる仕事を一個渡すだけで、全体が速くなる。"},
-{n:"積み方にうるさいビーバー",e:"🦫",en:"beaver",v:"stacking wooden blocks perfectly, checking with a tiny level",sc:"by a quiet river with neatly stacked logs, green and warm wood",c:"積み上げたもんは、崩さん。",d:"地道な作業をきれいに積む職人。派手さは要らん、確実さこそが誇り。",g:["精度が高い","続けられる"],w:"急な変更に弱い。変わる前提で組んどくと気がラクになる。"},
-{n:"こっそり直しとくアナグマ",e:"🦡",en:"badger",v:"quietly tightening a loose screw behind a signboard",sc:"in a dim back corridor behind the scenes, muted olive and brown",c:"誰かが困る前に、直しとく。",d:"表には出んけど、回ってるのはこの人のおかげ。ルールと人の間を取るのが上手い。",g:["先に気づく力","調整力"],w:"感謝されにくい場所に立ちがち。やったことは記録に残しとこ。"},
-{n:"3秒で決めるハヤブサ",e:"🦅",en:"falcon",v:"wearing small sunglasses, snapping its wing-fingers",sc:"on a high tower edge in clear cold air, steel blue and white",c:"見えた瞬間に、撃つ。",d:"判断が速くて正確。迷ってる時間そのものを損やと思ってるから、意思決定が詰まらん。",g:["即断即決","無駄がない"],w:"周りが置いていかれる。決めた理由を一行だけ添えよ。"},
-{n:"呼ばれる前に走ってるイノシシ",e:"🐗",en:"boar",v:"already running, a ringing phone left behind on the ground",sc:"on a muddy trail in the rain, dark green and grey",c:"呼ばれたら、もう走ってる。",d:"頼まれごとに強い。細かい理屈より、まず現場に行って解決してしまうタイプ。",g:["行動力","頼りになる"],w:"一度走ると止まれん。走る方向だけ最初に確認しよ。"},
-{n:"なんでも触るおサル",e:"🐒",en:"monkey",v:"juggling a screwdriver, a wrench and a ball",sc:"in a tool shed with tools hanging on the wall, warm yellow",c:"やってみたら、できた。",d:"器用でなんでもこなす。人の輪より、作業そのものが好き。覚えるのがとにかく速い。",g:["応用が利く","習得が速い"],w:"飽きたら急に手が止まる。飽きる前に人に渡すのがコツ。"},
-{n:"壊れもん拾うカワウソ",e:"🦦",en:"otter",v:"holding a cracked cup in one paw and a glue tube in the other",sc:"at a riverside repair bench, fresh green and sky blue",c:"壊れてるもん、置いとかれへん。",d:"問題を見つけたら直したくなる性分。作業しながら人とも喋れるから、現場が明るい。",g:["現場の問題解決","空気を悪くしない"],w:"自分の仕事が後回しになる。自分の分の時間も予約しとこ。"},
-{n:"ボツ紙の山のヤギ",e:"🐐",en:"goat",v:"surrounded by crumpled paper, still drawing on a fresh sheet",sc:"in a cramped night studio buried in crumpled paper, sepia lamp light",c:"納得いくまで、出さん。",d:"自分の基準が全て。人の評価より、自分が良いと思えるかどうかで決める。",g:["質へのこだわり","ブレない基準"],w:"完成が遅れる。締切を先に人と約束してしまうのが効く。"},
-{n:"毛布くばるヒツジ",e:"🐑",en:"sheep",v:"handing over a folded blanket, thermos at its feet",sc:"in a quiet infirmary room with soft curtains, cream and pale pink",c:"無理してへん？",d:"人の疲れに、いちばん早く気づく。段取りを整えて、そっと負担を減らしてくれる人。",g:["気配り","安心を作る"],w:"自分が疲れてても言わん。言うてくれたほうが、周りも助かる。"},
-{n:"貯金箱かかえたハムスター",e:"🐹",en:"hamster",v:"hugging a piggy bank, tiny budget notebook beside it",sc:"in a tidy little room of jars and shelves, warm beige",c:"ちゃんと、貯めてる。",d:"先を見て備えるのが上手い。堅実で、無駄なリスクを取らんから大崩れせえへん。",g:["計画的","コツコツ強い"],w:"守りに入りすぎる。小さい賭けなら、してみてもええ。"},
-{n:"頼んでへんのにやるアヒル",e:"🦆",en:"duck",v:"carrying a tray with tea cups for someone else",sc:"in a small kitchen in the morning, pale yellow and white",c:"ついでに、これもやっといたで。",d:"頼まれてないことまでやってしまう。人の役に立ってるときが、いちばん元気。",g:["先回りの気配り","チームの潤滑油"],w:"やりすぎると煙たがられる。一声かけてからやると完璧。"},
-{n:"口いっぱいのカバ",e:"🦛",en:"hippo",v:"cheeks bulging with food, holding another full plate",sc:"at an outdoor food stall in the evening, warm red and lantern gold",c:"好きなもんは、全力で。",d:"欲に正直でマイペース。普段はのんびりやけど、本気になったら誰も止められへん。",g:["底力","自分を曲げない"],w:"エンジンがかかるまで遅い。最初の一歩だけ小さくしとこ。"},
-{n:"先に飛んでるカンガルー",e:"🦘",en:"kangaroo",v:"mid-hop, pulling a small friend along by the hand",sc:"on a festival street at dusk, vermilion and violet",c:"まず動こ、話はあと。",d:"勢いで人を連れていくタイプ。ノリと情でチームを温めるのが上手い。",g:["場を温める","行動が早い"],w:"計画を置き去りにする。走りながらでいいからメモを残そ。"},
-{n:"まだ焦ってへんアルパカ",e:"🦙",en:"alpaca",v:"lying in the sun with a drink and a straw",sc:"on a grassy hill in the afternoon sun, soft green and cream",c:"まあ、なんとかなる。",d:"マイペースの権化。自分も焦らんし、人にも焦らせん。一緒におると肩の力が抜ける。",g:["場を和ませる","動じない"],w:"締切の感覚がゆるい。人と締切を共有するだけで直る。"},
-{n:"全員と友達のゴールデン",e:"🐶",en:"golden retriever",v:"surrounded by tiny floating hearts, tail wagging",sc:"at a park entrance on a breezy day, bright airy pastel",c:"誰とでも、すぐ仲良くなる。",d:"壁を作らん。難しい理屈より、目の前の人をちゃんと大事にするタイプ。",g:["誰とでも組める","素直"],w:"イヤと言えん。断る練習だけしといたほうがええ。"},
-{n:"ひとりで仕上げるトラ",e:"🐅",en:"tiger",v:"alone at a desk at night, one lamp, almost finished work",sc:"alone at a desk deep at night, one lamp, dark blue and amber",c:"一人で決めて、一人で仕上げる。",d:"静かやけど中身は激しい。自分の設計を信じて、最後まで一人でやりきってしまう。",g:["完遂力","高い基準"],w:"人に頼らん。頼るのは弱さちゃう、速さやと思ってええ。"},
-{n:"聞かれたら答えるフクロウ",e:"🦉",en:"owl",v:"holding a closed book, one eye open, knowing expression",sc:"in a moonlit library, deep navy and pale gold",c:"表に出んでええ、勝てば。",d:"だいたい全部見えてるのに黙ってる。聞かれたときだけ、的確な一手を静かに出す。",g:["分析力","信頼できる助言"],w:"聞かれるまで言わん。先に言うたほうが、事故は減る。"},
-{n:"甲羅が本棚のカメ",e:"🐢",en:"turtle",v:"shell built out of neatly stacked books",sc:"in an old archive room with dusty sunbeams, brown and green",c:"急がへん。でも、忘れへん。",d:"積み上げた知識が武器。遅く見えて、気づいたらいちばん遠くまで来てるタイプ。",g:["知識の蓄積","粘り強さ"],w:"始めるまでが長い。とりあえず一行だけ書く、が効く。"},
-{n:"動かんまま待つワニ",e:"🐊",en:"crocodile",v:"half submerged, only eyes above water, a blueprint floating nearby",sc:"in a still swamp at dusk, dark teal and mauve",c:"動く前に、ぜんぶ決める。",d:"静かに待って、決まった瞬間に一気に動く。表に出ん裏の仕組みを作る役が向いてる。",g:["設計力","土壇場の瞬発力"],w:"待ちすぎて機を逃す。7割で動く日を決めとこ。"},
-{n:"同時に8個やるタコ",e:"🐙",en:"octopus",v:"each tentacle holding a different tool or device",sc:"in a deep-sea workshop with glowing jars, violet and cyan",c:"気づいたら、もう別の手を打ってる。",d:"一人で複数のことを同時に回せる。発想が縦やなくて横に飛ぶのが強み。",g:["同時処理","発想の柔軟さ"],w:"やってることが人に見えん。途中経過を一行共有するだけで評価が変わる。"},
-{n:"夜中に試作するネズミ",e:"🐭",en:"mouse",v:"soldering a tiny gadget under a desk lamp at night",sc:"at a cramped workbench at 3am, warm lamp against cool shadow",c:"作ってみた。使ってみて。",d:"思いついたら夜中でも手が動く。人の困りごとを見つけたときに、いちばん火がつく。",g:["試作が速い","人の課題に敏感"],w:"仕上げの前に次を作る。最後の1割を終わらせたら化ける。"},
-{n:"深夜が本番のコウモリ",e:"🦇",en:"bat",v:"hanging upside down wearing headphones, full moon behind",sc:"on a balcony under a full moon, indigo and silver",c:"静かな時間に、いちばん冴える。",d:"人が寝てる時間に本気を出すタイプ。集中の質が異常に高くて、一晩で形になる。",g:["深い集中","独自の視点"],w:"生活リズムが崩れる。冴える時間を昼に移せたら最強。"},
-{n:"色だけ合わせるカメレオン",e:"🦎",en:"chameleon",v:"half its body matching the background pattern, half its own color",sc:"against a patterned wall in a sunlit room, shifting pastels",c:"空気は読める。合わせるかは別。",d:"場を見て自分を変えられる。人当たりはええけど、芯のところは絶対に動かん。",g:["適応力","観察眼"],w:"本音が伝わらん。近い人にだけは、素で話しとこ。"},
-{n:"頭の中が宇宙のイカ",e:"🦑",en:"squid",v:"translucent body with a tiny galaxy swirling inside it",sc:"floating in dark water full of tiny stars, black-violet and cyan",c:"頭の中に、別の世界がある。",d:"誰にも見せてない設定がぎっしり詰まってる。静かやけど、中身はとんでもなく豊か。",g:["独創性","ひとりで深く潜れる"],w:"外に出すのが怖い。一人にだけ見せるとこから始めよ。"},
-{n:"先に気づいてるシカ",e:"🦌",en:"deer",v:"ears perked up, glancing back, tiny question mark floating",sc:"at the edge of a misty forest at dawn, pale green and grey",c:"言葉になる前に、気づいてる。",d:"人の変化に敏感で、先に手を打てる。騒がずに全体を支えてる縁の下のタイプ。",g:["察する力","誠実さ"],w:"気づきすぎて疲れる。気づいても拾わん日があってええ。"},
-{n:"ひとりの時間が要るウサギ",e:"🐰",en:"rabbit",v:"inside a small cozy tent wearing headphones",sc:"inside a small tent at night with a warm lamp, cream and dusty blue",c:"ひとりの時間が、どうしても要る。",d:"やさしいけど、人と会うと電池が減る。自分のペースを守れてるときは驚くほど強い。",g:["繊細な感性","丁寧な仕事"],w:"限界まで我慢する。半分のところで一回休も。"},
-{n:"おるだけで安心のアザラシ",e:"🦭",en:"seal",v:"lying still while two tiny creatures nap on its belly",sc:"on a quiet sunlit shore rock, pale aqua and white",c:"そこにおるだけで、安心する。",d:"主張はせんけど、いなくなると全員が困る人。場の体温をずっと保ってる。",g:["安心感","受け止める力"],w:"自分の意見を飲み込む。言うても場は壊れへん。"},
-{n:"流れに乗るクマノミ",e:"🐠",en:"clownfish",v:"drifting sideways among bubbles, totally relaxed",sc:"drifting among soft corals, coral pink and turquoise",c:"決めんのが、いちばん自分らしい。",d:"流れに乗るのが上手い。自由でおれるうちに、いちばんええ仕事をする。",g:["柔軟さ","素直な感受性"],w:"縛られると弱る。逃げ道を一本残して約束しよ。"},
-{n:"気づいたら隣におるチョウ",e:"🦋",en:"butterfly",v:"landing softly on the edge of a teacup",sc:"at a quiet cafe table by a window, cream and soft green",c:"気づいたら、隣におる。",d:"ふわっと現れて、必要としてる人の近くにいる。押しつけがましさが一切ない。",g:["人の心をほどく","自然体"],w:"つかみどころがない。大事な話のときだけ、はっきり言お。"},
-{n:"急がんナマケモノ",e:"🦥",en:"sloth",v:"hanging from a branch holding a mug",sc:"hanging in a hazy afternoon jungle, muted green and gold",c:"急いでも、ええことない。",d:"省エネの達人。やるときはやるけど、その「やる」の基準がめちゃくちゃ高い。",g:["本質を見抜く","焦らない"],w:"腰が重い。始める時間だけ決めとくと動ける。"},
-{n:"守られがちのヒヨコ",e:"🐤",en:"chick",v:"wrapped in a fluffy towel, only face showing, big eyes",sc:"in a soft nest of folded towels indoors, pale yellow and white",c:"守りたくなるほうの担当。",d:"甘え上手で、まわりが自然と手を貸してくれる。実は人のことをよう見てる。",g:["人を動かす愛嬌","素直"],w:"一人になると固まる。困ったら早めに声を上げよ。"},
-{n:"近づくとトゲ立てるハリネズミ",e:"🦔",en:"hedgehog",v:"quills fully up, proudly holding a perfectly finished model",sc:"in a tiny neat workshop lit by one lamp, deep green and brass",c:"距離は取るけど、成果は裏切らん。",d:"自分の領域をきっちり守る職人。近づかれるのは苦手やけど、出すもんの質は保証つき。",g:["精度の高さ","自立してる"],w:"人を寄せつけん。トゲを一本ずつ寝かせるだけで組みやすくなる。"},
-{n:"持ち場を守るハチ",e:"🐝",en:"bee",v:"wearing a tiny work apron, inspecting one hexagon cell",sc:"in a honeycomb workroom, warm amber and ivory",c:"決まった仕事を、完璧に。",d:"役割さえ決まれば強い。チームの中で黙々と、品質のいちばん低いところを底上げする。",g:["再現性","責任感"],w:"ルールが崩れると止まる。崩れたときの決め方を先に握っとこ。"},
-{n:"守り固めるカニ",e:"🦀",en:"crab",v:"holding a small shield made from a shell, claws up",sc:"among tide pool rocks at low tide, slate grey and coral",c:"守りは任せとき。",d:"一度決めた守り方は変えん。外は硬いけど、中身はかなり繊細でよう気を使ってる。",g:["守備力","ミスが少ない"],w:"変化を嫌う。理由がわかれば動けるタイプなので、説明を求めてええ。"},
-{n:"誰も見てへんとこで運ぶアリ",e:"🐜",en:"ant",v:"carrying a crumb three times its own size, alone on a path",sc:"on a long dim underground path, earth brown and faint gold",c:"誰も見てなくても、やる。",d:"地味な作業を積み上げてチームを支える。続けることに関しては誰にも負けん。",g:["継続力","チームへの誠実さ"],w:"自分の手柄を言わん。言わんと、次の仕事に繋がらへん。"},
-{n:"音もなく終わらせるヘビ",e:"🐍",en:"snake",v:"coiled quietly beside a checklist where every box is already ticked",sc:"in a shadowed room cut by one strip of light, charcoal and jade",c:"気づかれる前に、終わらせる。",d:"静かに機を待って、来た瞬間に一気に仕留める。無駄口をいっさい叩かん。",g:["集中の切れ味","冷静さ"],w:"相談せずに進める。一声かけたほうが、結果は同じでも通りやすい。"},
-{n:"細かいミス見つけるテントウムシ",e:"🐞",en:"ladybug",v:"holding a red pen, its spots arranged like little check marks",sc:"on a desk covered in printed pages, white and red",c:"小さい不具合、ぜんぶ見えてる。",d:"細かい違和感に気づいて、黙って直してる人。チームの品質を守ってるのはこの目。",g:["ミスを見つける","手が早い"],w:"指摘の仕方で損をする。直したことを先に言うと角が立たん。"},
-{n:"自分の持ち場だけのペンギン",e:"🐧",en:"penguin",v:"standing on its own small ice tile with a broom",sc:"on a small ice floe in flat even daylight, pale blue and white",c:"自分の持ち場は、自分で守る。",d:"群れの中にはおるけど、作業は一人がええ。決めた手順を淡々と回しきる。",g:["安定した実行","自己管理"],w:"助けを求めん。手が回らん時は早めに言うたほうが被害が小さい。"},
-{n:"ズレが気になるカタツムリ",e:"🐌",en:"snail",v:"aligning tiny tiles with a ruler, very slowly",sc:"on a tiled floor being carefully aligned, soft grey and mint",c:"遅くていい。ズレてるほうが困る。",d:"速さより正しさ。ゆっくりでも、全部そろえてから前に進む慎重派。",g:["丁寧さ","ズレを直す力"],w:"スピードを求められると苦しい。どこを雑にしてええか先に聞こ。"},
-{n:"部屋から出えへんパンダ",e:"🐼",en:"panda",v:"inside a cozy room, shelves full of favorite things",sc:"inside a cozy room packed with shelves, warm wood and green",c:"自分の世界が、いちばん落ち着く。",d:"好きなものを整えて並べてる時間が幸せ。人に合わせるのは、正直しんどい。",g:["世界観の作り込み","こだわり"],w:"外に出るのが億劫。作ったもんだけ先に外に出してもええ。"},
-{n:"ごはん食べたか聞くブタ",e:"🐷",en:"pig",v:"wearing an apron, holding a lunchbox and a ladle",sc:"in a warm kitchen at dinner time, tomato red and cream",c:"食べた？ 寝た？",d:"気づいたら世話してる。段取りも生活力も高い、チームのおかんポジション。",g:["生活面から支える","抜けがない"],w:"自分のことが後回し。自分にも同じことを聞いたって。"},
-{n:"急かされたくないウシ",e:"🐮",en:"cow",v:"wrapped in a knitted blanket with a cup of tea",sc:"in a quiet barn corner in soft morning light, straw yellow and grey",c:"急かされるのが、いちばん苦手。",d:"自分のリズムさえ守れれば強い。穏やかやけど、ここは譲らんという線をちゃんと持ってる。",g:["安定感","粘り強さ"],w:"急な依頼で崩れる。バッファを先に取っとこ。"},
-{n:"手土産持ってくるハト",e:"🕊️",en:"dove",v:"carrying a small gift box tied with a ribbon",sc:"at a doorway holding a small gift, pale blue and white",c:"なんか持ってきたで。",d:"人と人の間を静かに取り持つ人。角の立たん伝え方が、びっくりするほど上手い。",g:["橋渡し","空気を壊さない"],w:"本音を言う場面で引く。ここぞの一回だけは言い切ろ。"},
-{n:"理由言わんとふくれるフグ",e:"🐡",en:"pufferfish",v:"fully puffed up, arms crossed, pouting to the side",sc:"in a small rocky nook underwater, murky teal and coral",c:"機嫌が悪いと、ふくれる。",d:"普段はのんびり、怒るとめちゃくちゃ分かりやすい。感情に正直で、嘘がない。",g:["素直","一人でも平気"],w:"ふくれてる理由を言わん。言うだけで、だいたい解決する。"},
-{n:"くっついたまま離れんコアラ",e:"🐨",en:"koala",v:"hugging a cushion, half asleep, eyes almost closed",sc:"on a eucalyptus branch in hazy afternoon, sage green and grey",c:"くっついてるだけで、ええねん。",d:"無理に喋らんでも一緒におれる相手。おるだけで安心をくれる存在。",g:["人を安心させる","穏やか"],w:"動き出すまで時間がかかる。誘われたら乗る、でちょうどいい。"},
-{n:"ひだまり占領するラクダ",e:"🐫",en:"camel",v:"lying right in a patch of sunlight on the floor",sc:"on a warm patch of sunlight on an indoor floor, sand beige and gold",c:"ひとりで、あったかいとこにおりたい。",d:"見た目は大きいけど中身は繊細。無理せんペースで、長く続けるのが得意。",g:["マイペースの強さ","芯がある"],w:"感情を出すのが遅い。溜める前に、小出しにしとこ。"},
-{n:"なんも考えてへんマンボウ",e:"🐟",en:"sunfish",v:"floating sideways with a blank, happy face",sc:"drifting in wide open water, washed-out pale blue and white",c:"深く考えんほうが、うまくいく。",d:"流れに身をまかせるのが上手い。一緒におる人の緊張が、なぜかほどけていく。",g:["癒やし","こだわらない強さ"],w:"流されやすい。ここだけは、という一点を決めとこ。"}
+{n:"旗を立てたがるドラゴン",e:"🐉",en:"dragon",v:"standing on a rock, planting a huge flag, wind blowing",sc:"on a windswept cliff at sunrise, gold and pale blue",c:"旗を立てて、振り返らずに進む。",d:"先が見えてへんうちから旗を立てられる人。構想も判断も速いぶん、周りが追いつく前に一人で先に着いてしまう。",g:["構想から実行までが速い","決めきる胆力"],w:"説明を省きがち。頭の中の三歩先を、言葉にして渡すだけで味方が増える。",d2:"先に旗を立てて、そこへ向かって全部を組み替えていく人。頭の中ではもう完成図ができてるから、周りには唐突に見える。反対されても止まらんし、実際に着いてしまうから誰も文句を言えんくなる。"},
+{n:"先頭しか走らんオオカミ",e:"🐺",en:"wolf",v:"wearing a captain's armband, running one step ahead of the pack",sc:"on a snowy ridge at dawn, deep indigo and white",c:"群れの一歩前を走る。",d:"仲間を勝たせるために先頭を走るタイプ。理屈と情の両方で人を動かせる、数の少ないタイプ。",g:["人を巻き込む力","勝ち筋を描ける"],w:"背負いすぎる。しんどい時に「しんどい」と言えるかが分かれ目。",d2:"自分のためやなくて、連れてる人を勝たせるために先頭を走る。理屈で筋を通しながら、情でも引っぱれるから人がついてくる。強いぶん頼られて、気づけば全部背負ってる。"},
+{n:"ノートびっしりのカラス",e:"🐦",en:"crow",v:"hugging a thick notebook packed with tiny diagrams",sc:"in a dim study covered in pinned diagrams, lamp light, sepia and navy",c:"盛り上がる前に、図面を引いてる。",d:"アイデアは派手やのに、出す前に必ず筋を通す慎重派。外では明るいが、頭の中はずっと検算中。",g:["抜けの少ない設計","場に流されない判断"],w:"完璧になるまで出さん。6割でも見せたほうが早く進むことは多い。",d2:"外では明るく喋ってても、頭の中ではずっと検算してる。出すと決めたものは抜けが無いから信用される。ただ、自分の基準を満たすまで出さんから、何を考えてるか分からん時間が長い。"},
+{n:"ホワイトボード前のシャチ",e:"🐋",en:"orca",v:"standing in front of a small whiteboard, holding a pointer stick",sc:"in a bright meeting room with a whiteboard, mint and white",c:"全体を見て、配置を決める。",d:"流れを読んで人を置くのが上手い。自分が目立たんでも、チームが勝てばそれでいいと思ってる。",g:["全体最適が見える","安心感のある指揮"],w:"自分の希望を言わん。たまには自分の取り分も主張してええ。",d2:"人を見て、どこに置けば回るかを考えるのが速い。自分が主役にならんでも、チームが勝てばそれでいいと本気で思ってる。だから調整役を任されやすいし、実際うまくやる。"},
+{n:"靴ひもほどけたまま走るチーター",e:"🐆",en:"cheetah",v:"sprinting with untied shoelaces, tiny speed sparks behind",sc:"on a sunlit running track, vivid orange and yellow",c:"思いついた瞬間には走り出してる。",d:"速さが武器。考えるより先に形にして、走りながら直していく。初速だけは誰にも負けん。",g:["初速がとにかく速い","切り替えが早い"],w:"やりかけが増える。終わらせる日を先に決めとくと化ける。",d2:"思いついた瞬間に走り出す。準備が整うのを待つより、走りながら直すほうが速いと知ってる。実際いちばん早くゴールに着くのはこの人。"},
+{n:"メガホン持ったライオン",e:"🦁",en:"lion",v:"holding a megaphone, mouth wide open mid-shout",sc:"on a stage under warm spotlights, red and gold",c:"「行くぞ」の一言で、場が動く。",d:"勢いと理屈を同時に出せる珍しいタイプ。細かい計画より、現場の号令で全部回してしまう。",g:["場を一瞬で動かす","土壇場に強い"],w:"準備を軽く見る。ここだけ人に任せたら、相当強い。",d2:"場の空気を一言で変えられる。理屈も情もその場で出せるから、計画が無くても現場が回ってしまう。土壇場での強さは他のタイプが真似できん。"},
+{n:"裏道から来るキツネ",e:"🦊",en:"fox",v:"peeking out of a narrow alley, holding a map with a red shortcut line",sc:"in a narrow lantern-lit back alley at night, purple and amber",c:"正面からは行かへん。",d:"いちばんラクで、いちばん効く道を探すのが得意。派手に動くより、うまい手を一発で決めたい。",g:["攻略ルートを見つける","無駄を嫌う"],w:"手を抜いてると誤解されがち。考えてる過程を少し見せるといい。",d2:"正面からぶつからずに、いちばん楽で効く道を探す。考えてる時間が長いから手を抜いてるように見えるけど、動き出したら一発で決める。"},
+{n:"分解して戻せへんアライグマ",e:"🦝",en:"raccoon",v:"sitting in a pile of screws and toy parts, holding a screwdriver",sc:"in a cluttered workshop floor of scattered parts, teal and rust",c:"まず試す。だいたい壊す。",d:"気になったら触らずにおれん性分。壊しながら仕組みを覚えていくから、身につくのが異常に速い。",g:["検証が速い","手を動かすのが苦にならない"],w:"元に戻せんくなる。触る前のバックアップだけは癖にしとこ。",d2:"触らんと分からんタイプ。説明を聞くより、分解して中を見るほうが早く覚える。失敗の数がそのまま実力になってる、珍しい育ち方をした人。"},
+{n:"夢の話ばっかりするユニコーン",e:"🦄",en:"unicorn",v:"pointing up at a floating soap-bubble castle",sc:"in a starry night meadow, lavender and silver",c:"まだ見えてない景色の話をする。",d:"理想を語って、それを本気で取りに行く人。周りが笑っても、一人で歩き出せる強さがある。",g:["ビジョンを言葉にできる","折れにくい"],w:"現実の数字を後回しにする。夢の隣に電卓を置いとくだけで強い。",d2:"まだ誰も見てない景色を、本気の顔で話す。笑われても一人で歩き出せる強さがあるから、いつのまにか形になってることがある。理想を語る力は本物。"},
+{n:"灯りぶら下げたイルカ",e:"🐬",en:"dolphin",v:"carrying a glowing lantern, tail up",sc:"by the sea at dusk with a lighthouse beam, teal and apricot",c:"暗いとき、人がこっちに向かってくる。",d:"明るさと段取りを両方持ってる。誰かのために動いてるときに、いちばん力が出るタイプ。",g:["人が自然と集まる","面倒見と計画性の両立"],w:"自分の充電を忘れる。光り続けるには燃料がいる。",d2:"自分のためより、誰かのためのほうが力が出る。明るさと段取りを両方持ってるから、暗いときに人が自然と寄ってくる。灯りの役をずっとやってる。"},
+{n:"雲の上まで見えるキリン",e:"🦒",en:"giraffe",v:"neck above small clouds, tiny telescope in hand",sc:"above a soft sea of clouds at noon, pale blue and cream",c:"高いところから、やさしく話す。",d:"遠くまで見えてるのに、押しつけずに伝えられる。人の話を聞いてから動くので、まず信用される。",g:["伝える力","視野が広い"],w:"動き出すまでが長い。見えてる時点で半分終わってる、と思っていい。",d2:"遠くまで見えてるのに、それを押しつけへん。人の話を先に聞いてから動くから、言うことが信用される。視野の広さと謙虚さが同居してる。"},
+{n:"みんなの荷物持つゾウ",e:"🐘",en:"elephant",v:"carrying five backpacks at once, still smiling",sc:"on a busy station platform, warm beige and soft green",c:"みんなの分まで、ちゃんと覚えてる。",d:"段取りも気配りも抜けがない。誰が何に困ってたか全部覚えてるから、いつのまにか頼られてる。",g:["圧倒的な信頼感","抜けのない準備"],w:"頼まれごとを断れん。抱えてる量を一回書き出したほうがいい。",d2:"誰が何に困ってたか、全部覚えてる。段取りも気配りも抜けがないから、いつのまにか全員がこの人を頼る。信頼の総量がいちばん多いタイプ。"},
+{n:"両手いっぱいこぼすリス",e:"🐿️",en:"squirrel",v:"cheeks stuffed, arms full of acorns, dropping a few",sc:"on an autumn forest floor of fallen leaves, amber and brown",c:"楽しそうなほうへ、全力で。",d:"好奇心のまま跳ねまわる。気分が乗ってるときの爆発力は、誰にも止められへん。",g:["場を明るくする","瞬間の集中力"],w:"興味が移るのが速い。ひとつ終わらせてから次、が効く。",d2:"楽しそうな方へ全力で飛ぶ。乗ってるときの爆発力は誰も止められん。その場を明るくする才能は、本人が思ってるよりずっと価値がある。"},
+{n:"勝手に人集めるオウム",e:"🦜",en:"parrot",v:"blowing a party horn, confetti in the air",sc:"at a rooftop party with paper lanterns, hot pink and turquoise",c:"とりあえず、みんな呼ぼ。",d:"人と騒ぐのが燃料。計画より空気で動くのに、なぜかちゃんと形になってしまう。",g:["人を呼べる","ノリで壁を越える"],w:"あとから段取りに泣く。前日の確認だけは、しとこ。",d2:"人と騒ぐことが燃料。計画やなくて空気で動くのに、なぜかちゃんと形になってしまう。人を呼べる、それ自体が替えのきかん力。"},
+{n:"呼んでも来うへんネコ",e:"🐱",en:"cat",v:"lying flat on a laptop keyboard, looking the other way",sc:"on a messy desk by a window in late afternoon, warm orange light",c:"自分のペースで、そばにおる。",d:"人は好きやけど束縛は無理。気が向いたときの集中力と愛想は、掛け値なしに本物。",g:["独特の距離感","素直な感性"],w:"気分に左右される。乗らん日に何をするか決めとくとラク。",d2:"人は好きやけど、縛られるのは無理。気が向いたときの集中力と愛想は掛け値なしに本物で、そのギャップで好かれてる。"},
+{n:"しっぽ止まらんシバイヌ",e:"🐕",en:"shiba dog",v:"tail blurred with motion, huge open-mouth smile",sc:"in a sunny park on green grass, bright blue sky",c:"うれしいが、そのまま出る。",d:"感情が全部おもてに出るぶん、まわりも素直になれる。裏表がないのが最大の武器。",g:["場の空気をほどく","信頼されやすい"],w:"隠しごとができん。ポーカーフェイスが要る場面は人に任せよ。",d2:"うれしいも困ったも全部顔に出る。裏表が無いから、まわりも素直になれる。その場の空気をほどく力が最大の武器。"},
+{n:"曲がられへんサイ",e:"🦏",en:"rhino",v:"charging dead straight, dust cloud behind",sc:"on a dry straight road at midday, ochre and dusty blue",c:"決めたら、まっすぐ。",d:"現実を見て決めて、あとは止まらん。理屈で納得さえできれば、一直線に走りきる。",g:["推進力","ブレない"],w:"方向転換が苦手。走る前の一分だけ、地図を見よ。",d2:"現実を見て決めて、決めたらもう止まらん。理屈で納得できてるから迷いが無い。推進力だけで言えば64体でも上位。"},
+{n:"ヘルメットかぶったクマ",e:"🐻",en:"bear",v:"wearing a construction helmet, clipboard under one arm",sc:"at a construction site in the morning, yellow and grey",c:"段取り八分、あとは腕。",d:"準備と現場の両方ができる実務型。数字と人、どっちも見て回せるから現場が荒れへん。",g:["実行の精度","頼られる安定感"],w:"抱え込む。渡せる仕事を一個渡すだけで、全体が速くなる。",d2:"準備も現場もできる実務型。数字と人の両方を見られるから、任せた仕事が荒れへん。現場がいちばん安心する存在。"},
+{n:"積み方にうるさいビーバー",e:"🦫",en:"beaver",v:"stacking wooden blocks perfectly, checking with a tiny level",sc:"by a quiet river with neatly stacked logs, green and warm wood",c:"積み上げたもんは、崩さん。",d:"地道な作業をきれいに積む職人。派手さは要らん、確実さこそが誇り。",g:["精度が高い","続けられる"],w:"急な変更に弱い。変わる前提で組んどくと気がラクになる。",d2:"地道な作業をきれいに積むのが好き。派手さは要らん、確実さが誇り。積み上げたものは誰にも崩されへん。"},
+{n:"こっそり直しとくアナグマ",e:"🦡",en:"badger",v:"quietly tightening a loose screw behind a signboard",sc:"in a dim back corridor behind the scenes, muted olive and brown",c:"誰かが困る前に、直しとく。",d:"表には出んけど、回ってるのはこの人のおかげ。ルールと人の間を取るのが上手い。",g:["先に気づく力","調整力"],w:"感謝されにくい場所に立ちがち。やったことは記録に残しとこ。",d2:"誰かが困る前に直しておく人。ルールと人の間を取るのが上手くて、この人がおるから回ってる。気づく速さが本物。"},
+{n:"3秒で決めるハヤブサ",e:"🦅",en:"falcon",v:"wearing small sunglasses, snapping its wing-fingers",sc:"on a high tower edge in clear cold air, steel blue and white",c:"見えた瞬間に、撃つ。",d:"判断が速くて正確。迷ってる時間そのものを損やと思ってるから、意思決定が詰まらん。",g:["即断即決","無駄がない"],w:"周りが置いていかれる。決めた理由を一行だけ添えよ。",d2:"見えた瞬間に決める。迷ってる時間そのものが損やと思ってるから、意思決定で詰まらん。速さと正確さが両立してる稀なタイプ。"},
+{n:"呼ばれる前に走ってるイノシシ",e:"🐗",en:"boar",v:"already running, a ringing phone left behind on the ground",sc:"on a muddy trail in the rain, dark green and grey",c:"呼ばれたら、もう走ってる。",d:"頼まれごとに強い。細かい理屈より、まず現場に行って解決してしまうタイプ。",g:["行動力","頼りになる"],w:"一度走ると止まれん。走る方向だけ最初に確認しよ。",d2:"呼ばれる前に走り出してる。細かい理屈より、現場に行って解決するほうが早いと知ってる。頼りにされる回数がとにかく多い。"},
+{n:"なんでも触るおサル",e:"🐒",en:"monkey",v:"juggling a screwdriver, a wrench and a ball",sc:"in a tool shed with tools hanging on the wall, warm yellow",c:"やってみたら、できた。",d:"器用でなんでもこなす。人の輪より、作業そのものが好き。覚えるのがとにかく速い。",g:["応用が利く","習得が速い"],w:"飽きたら急に手が止まる。飽きる前に人に渡すのがコツ。",d2:"器用でなんでもこなす。人の輪より、作業そのものが好き。覚えるのが速いから、新しいことを任されやすい。"},
+{n:"壊れもん拾うカワウソ",e:"🦦",en:"otter",v:"holding a cracked cup in one paw and a glue tube in the other",sc:"at a riverside repair bench, fresh green and sky blue",c:"壊れてるもん、置いとかれへん。",d:"問題を見つけたら直したくなる性分。作業しながら人とも喋れるから、現場が明るい。",g:["現場の問題解決","空気を悪くしない"],w:"自分の仕事が後回しになる。自分の分の時間も予約しとこ。",d2:"壊れてるものを見たら直したくなる性分。作業しながら人とも喋れるから現場が明るい。技術と愛想を両方持ってる。"},
+{n:"ボツ紙の山のヤギ",e:"🐐",en:"goat",v:"surrounded by crumpled paper, still drawing on a fresh sheet",sc:"in a cramped night studio buried in crumpled paper, sepia lamp light",c:"納得いくまで、出さん。",d:"自分の基準が全て。人の評価より、自分が良いと思えるかどうかで決める。",g:["質へのこだわり","ブレない基準"],w:"完成が遅れる。締切を先に人と約束してしまうのが効く。",d2:"自分の基準が全て。人の評価より、自分が良いと思えるかどうかで決める。だから出てくるものの質がとにかく高い。"},
+{n:"毛布くばるヒツジ",e:"🐑",en:"sheep",v:"handing over a folded blanket, thermos at its feet",sc:"in a quiet infirmary room with soft curtains, cream and pale pink",c:"無理してへん？",d:"人の疲れに、いちばん早く気づく。段取りを整えて、そっと負担を減らしてくれる人。",g:["気配り","安心を作る"],w:"自分が疲れてても言わん。言うてくれたほうが、周りも助かる。",d2:"人の疲れにいちばん早く気づく。段取りを整えて、言わずに負担を減らしてくれる。この人がおると場が荒れへん。"},
+{n:"貯金箱かかえたハムスター",e:"🐹",en:"hamster",v:"hugging a piggy bank, tiny budget notebook beside it",sc:"in a tidy little room of jars and shelves, warm beige",c:"ちゃんと、貯めてる。",d:"先を見て備えるのが上手い。堅実で、無駄なリスクを取らんから大崩れせえへん。",g:["計画的","コツコツ強い"],w:"守りに入りすぎる。小さい賭けなら、してみてもええ。",d2:"先を見て備えるのが上手い。堅実で、無駄なリスクを取らんから大崩れせえへん。安心して任せられる。"},
+{n:"頼んでへんのにやるアヒル",e:"🦆",en:"duck",v:"carrying a tray with tea cups for someone else",sc:"in a small kitchen in the morning, pale yellow and white",c:"ついでに、これもやっといたで。",d:"頼まれてないことまでやってしまう。人の役に立ってるときが、いちばん元気。",g:["先回りの気配り","チームの潤滑油"],w:"やりすぎると煙たがられる。一声かけてからやると完璧。",d2:"頼まれてないことまでやってしまう。人の役に立ってるときがいちばん元気。先回りの気配りがチームを回してる。"},
+{n:"口いっぱいのカバ",e:"🦛",en:"hippo",v:"cheeks bulging with food, holding another full plate",sc:"at an outdoor food stall in the evening, warm red and lantern gold",c:"好きなもんは、全力で。",d:"欲に正直でマイペース。普段はのんびりやけど、本気になったら誰も止められへん。",g:["底力","自分を曲げない"],w:"エンジンがかかるまで遅い。最初の一歩だけ小さくしとこ。",d2:"欲に正直でマイペース。普段はのんびりしてるのに、本気になったら誰も止められん。その落差が魅力になってる。"},
+{n:"先に飛んでるカンガルー",e:"🦘",en:"kangaroo",v:"mid-hop, pulling a small friend along by the hand",sc:"on a festival street at dusk, vermilion and violet",c:"まず動こ、話はあと。",d:"勢いで人を連れていくタイプ。ノリと情でチームを温めるのが上手い。",g:["場を温める","行動が早い"],w:"計画を置き去りにする。走りながらでいいからメモを残そ。",d2:"まず動いて、話はあと。勢いで人を連れていくから、場が一気に温まる。ノリと情で壁を越えるのが得意。"},
+{n:"まだ焦ってへんアルパカ",e:"🦙",en:"alpaca",v:"lying in the sun with a drink and a straw",sc:"on a grassy hill in the afternoon sun, soft green and cream",c:"まあ、なんとかなる。",d:"マイペースの権化。自分も焦らんし、人にも焦らせん。一緒におると肩の力が抜ける。",g:["場を和ませる","動じない"],w:"締切の感覚がゆるい。人と締切を共有するだけで直る。",d2:"焦らんし、人にも焦らせん。一緒におると肩の力が抜ける、そういう存在。動じひんことが才能になってる。"},
+{n:"全員と友達のゴールデン",e:"🐶",en:"golden retriever",v:"surrounded by tiny floating hearts, tail wagging",sc:"at a park entrance on a breezy day, bright airy pastel",c:"誰とでも、すぐ仲良くなる。",d:"壁を作らん。難しい理屈より、目の前の人をちゃんと大事にするタイプ。",g:["誰とでも組める","素直"],w:"イヤと言えん。断る練習だけしといたほうがええ。",d2:"壁を作らん。難しい理屈より、目の前の人を大事にする。だから誰とでも組めるし、どこに行っても好かれる。"},
+{n:"ひとりで仕上げるトラ",e:"🐅",en:"tiger",v:"alone at a desk at night, one lamp, almost finished work",sc:"alone at a desk deep at night, one lamp, dark blue and amber",c:"一人で決めて、一人で仕上げる。",d:"静かやけど中身は激しい。自分の設計を信じて、最後まで一人でやりきってしまう。",g:["完遂力","高い基準"],w:"人に頼らん。頼るのは弱さちゃう、速さやと思ってええ。",d2:"静かやけど、中身は激しい。自分の設計を信じて、最後まで一人でやりきってしまう。完成させる力が飛び抜けてる。"},
+{n:"聞かれたら答えるフクロウ",e:"🦉",en:"owl",v:"holding a closed book, one eye open, knowing expression",sc:"in a moonlit library, deep navy and pale gold",c:"表に出んでええ、勝てば。",d:"だいたい全部見えてるのに黙ってる。聞かれたときだけ、的確な一手を静かに出す。",g:["分析力","信頼できる助言"],w:"聞かれるまで言わん。先に言うたほうが、事故は減る。",d2:"だいたい全部見えてるのに黙ってる。聞かれたときだけ、的確な一手を静かに出す。だから助言の信頼度が異常に高い。"},
+{n:"甲羅が本棚のカメ",e:"🐢",en:"turtle",v:"shell built out of neatly stacked books",sc:"in an old archive room with dusty sunbeams, brown and green",c:"急がへん。でも、忘れへん。",d:"積み上げた知識が武器。遅く見えて、気づいたらいちばん遠くまで来てるタイプ。",g:["知識の蓄積","粘り強さ"],w:"始めるまでが長い。とりあえず一行だけ書く、が効く。",d2:"急がへん。でも忘れへん。積み上げた知識がそのまま武器になってるから、遅く見えて気づいたらいちばん遠くまで来てる。"},
+{n:"動かんまま待つワニ",e:"🐊",en:"crocodile",v:"half submerged, only eyes above water, a blueprint floating nearby",sc:"in a still swamp at dusk, dark teal and mauve",c:"動く前に、ぜんぶ決める。",d:"静かに待って、決まった瞬間に一気に動く。表に出ん裏の仕組みを作る役が向いてる。",g:["設計力","土壇場の瞬発力"],w:"待ちすぎて機を逃す。7割で動く日を決めとこ。",d2:"動く前に全部決める。静かに待って、決まった瞬間に一気に動くから、遅いようで実は速い。裏の仕組みを作る役が向いてる。"},
+{n:"同時に8個やるタコ",e:"🐙",en:"octopus",v:"each tentacle holding a different tool or device",sc:"in a deep-sea workshop with glowing jars, violet and cyan",c:"気づいたら、もう別の手を打ってる。",d:"一人で複数のことを同時に回せる。発想が縦やなくて横に飛ぶのが強み。",g:["同時処理","発想の柔軟さ"],w:"やってることが人に見えん。途中経過を一行共有するだけで評価が変わる。",d2:"一人で複数のことを同時に回せる。発想が縦やなくて横に飛ぶから、人が思いつかん手を先に打ってる。"},
+{n:"夜中に試作するネズミ",e:"🐭",en:"mouse",v:"soldering a tiny gadget under a desk lamp at night",sc:"at a cramped workbench at 3am, warm lamp against cool shadow",c:"作ってみた。使ってみて。",d:"思いついたら夜中でも手が動く。人の困りごとを見つけたときに、いちばん火がつく。",g:["試作が速い","人の課題に敏感"],w:"仕上げの前に次を作る。最後の1割を終わらせたら化ける。",d2:"思いついたら夜中でも手が動く。人の困りごとを見つけたときにいちばん火がつくタイプ。試作までが異常に速い。"},
+{n:"深夜が本番のコウモリ",e:"🦇",en:"bat",v:"hanging upside down wearing headphones, full moon behind",sc:"on a balcony under a full moon, indigo and silver",c:"静かな時間に、いちばん冴える。",d:"人が寝てる時間に本気を出すタイプ。集中の質が異常に高くて、一晩で形になる。",g:["深い集中","独自の視点"],w:"生活リズムが崩れる。冴える時間を昼に移せたら最強。",d2:"人が寝てる時間に本気を出す。集中の質が高くて、一晩で形になることがある。独自の視点もそこから出てくる。"},
+{n:"色だけ合わせるカメレオン",e:"🦎",en:"chameleon",v:"half its body matching the background pattern, half its own color",sc:"against a patterned wall in a sunlit room, shifting pastels",c:"空気は読める。合わせるかは別。",d:"場を見て自分を変えられる。人当たりはええけど、芯のところは絶対に動かん。",g:["適応力","観察眼"],w:"本音が伝わらん。近い人にだけは、素で話しとこ。",d2:"場を見て自分を変えられる。人当たりはええのに、芯のところは絶対に動かん。その二重構造が強みになってる。"},
+{n:"頭の中が宇宙のイカ",e:"🦑",en:"squid",v:"translucent body with a tiny galaxy swirling inside it",sc:"floating in dark water full of tiny stars, black-violet and cyan",c:"頭の中に、別の世界がある。",d:"誰にも見せてない設定がぎっしり詰まってる。静かやけど、中身はとんでもなく豊か。",g:["独創性","ひとりで深く潜れる"],w:"外に出すのが怖い。一人にだけ見せるとこから始めよ。",d2:"頭の中に誰にも見せてない世界がある。静かやけど、中身はとんでもなく豊か。そこから出てくるものは本物。"},
+{n:"先に気づいてるシカ",e:"🦌",en:"deer",v:"ears perked up, glancing back, tiny question mark floating",sc:"at the edge of a misty forest at dawn, pale green and grey",c:"言葉になる前に、気づいてる。",d:"人の変化に敏感で、先に手を打てる。騒がずに全体を支えてる縁の下のタイプ。",g:["察する力","誠実さ"],w:"気づきすぎて疲れる。気づいても拾わん日があってええ。",d2:"言葉になる前に気づいてる。人の変化に敏感で、先に手を打てるから、騒がずに全体を支えてる。"},
+{n:"ひとりの時間が要るウサギ",e:"🐰",en:"rabbit",v:"inside a small cozy tent wearing headphones",sc:"inside a small tent at night with a warm lamp, cream and dusty blue",c:"ひとりの時間が、どうしても要る。",d:"やさしいけど、人と会うと電池が減る。自分のペースを守れてるときは驚くほど強い。",g:["繊細な感性","丁寧な仕事"],w:"限界まで我慢する。半分のところで一回休も。",d2:"やさしいけど、人と会うと電池が減る。自分のペースを守れてるときの仕事は驚くほど丁寧。"},
+{n:"おるだけで安心のアザラシ",e:"🦭",en:"seal",v:"lying still while two tiny creatures nap on its belly",sc:"on a quiet sunlit shore rock, pale aqua and white",c:"そこにおるだけで、安心する。",d:"主張はせんけど、いなくなると全員が困る人。場の体温をずっと保ってる。",g:["安心感","受け止める力"],w:"自分の意見を飲み込む。言うても場は壊れへん。",d2:"主張はせんのに、いなくなると全員が困る。場の体温を保ってるのはこの人。受け止める力が強い。"},
+{n:"流れに乗るクマノミ",e:"🐠",en:"clownfish",v:"drifting sideways among bubbles, totally relaxed",sc:"drifting among soft corals, coral pink and turquoise",c:"決めんのが、いちばん自分らしい。",d:"流れに乗るのが上手い。自由でおれるうちに、いちばんええ仕事をする。",g:["柔軟さ","素直な感受性"],w:"縛られると弱る。逃げ道を一本残して約束しよ。",d2:"流れに乗るのが上手い。自由でおれるうちにいちばんええ仕事をする。柔らかさが武器になってる。"},
+{n:"気づいたら隣におるチョウ",e:"🦋",en:"butterfly",v:"landing softly on the edge of a teacup",sc:"at a quiet cafe table by a window, cream and soft green",c:"気づいたら、隣におる。",d:"ふわっと現れて、必要としてる人の近くにいる。押しつけがましさが一切ない。",g:["人の心をほどく","自然体"],w:"つかみどころがない。大事な話のときだけ、はっきり言お。",d2:"ふわっと現れて、必要としてる人の近くにいる。押しつけがましさが一切ないから、みんなが安心して話す。"},
+{n:"急がんナマケモノ",e:"🦥",en:"sloth",v:"hanging from a branch holding a mug",sc:"hanging in a hazy afternoon jungle, muted green and gold",c:"急いでも、ええことない。",d:"省エネの達人。やるときはやるけど、その「やる」の基準がめちゃくちゃ高い。",g:["本質を見抜く","焦らない"],w:"腰が重い。始める時間だけ決めとくと動ける。",d2:"省エネの達人。やるときはやるけど、その「やる」の基準がめちゃくちゃ高い。だから本質を見抜くのが速い。"},
+{n:"守られがちのヒヨコ",e:"🐤",en:"chick",v:"wrapped in a fluffy towel, only face showing, big eyes",sc:"in a soft nest of folded towels indoors, pale yellow and white",c:"守りたくなるほうの担当。",d:"甘え上手で、まわりが自然と手を貸してくれる。実は人のことをよう見てる。",g:["人を動かす愛嬌","素直"],w:"一人になると固まる。困ったら早めに声を上げよ。",d2:"甘え上手で、まわりが自然と手を貸してくれる。それは愛嬌であり、立派な才能。実は人のことをよう見てる。"},
+{n:"近づくとトゲ立てるハリネズミ",e:"🦔",en:"hedgehog",v:"quills fully up, proudly holding a perfectly finished model",sc:"in a tiny neat workshop lit by one lamp, deep green and brass",c:"距離は取るけど、成果は裏切らん。",d:"自分の領域をきっちり守る職人。近づかれるのは苦手やけど、出すもんの質は保証つき。",g:["精度の高さ","自立してる"],w:"人を寄せつけん。トゲを一本ずつ寝かせるだけで組みやすくなる。",d2:"自分の領域をきっちり守る職人。近づかれるのは苦手やけど、出すものの質は裏切らん。"},
+{n:"持ち場を守るハチ",e:"🐝",en:"bee",v:"wearing a tiny work apron, inspecting one hexagon cell",sc:"in a honeycomb workroom, warm amber and ivory",c:"決まった仕事を、完璧に。",d:"役割さえ決まれば強い。チームの中で黙々と、品質のいちばん低いところを底上げする。",g:["再現性","責任感"],w:"ルールが崩れると止まる。崩れたときの決め方を先に握っとこ。",d2:"役割さえ決まれば強い。黙々と、チームでいちばん低いところを底上げする。再現性のある仕事をする人。"},
+{n:"守り固めるカニ",e:"🦀",en:"crab",v:"holding a small shield made from a shell, claws up",sc:"among tide pool rocks at low tide, slate grey and coral",c:"守りは任せとき。",d:"一度決めた守り方は変えん。外は硬いけど、中身はかなり繊細でよう気を使ってる。",g:["守備力","ミスが少ない"],w:"変化を嫌う。理由がわかれば動けるタイプなので、説明を求めてええ。",d2:"一度決めた守り方は変えん。外は硬いけど、中身はかなり繊細でよう気を使ってる。守備力が高い。"},
+{n:"誰も見てへんとこで運ぶアリ",e:"🐜",en:"ant",v:"carrying a crumb three times its own size, alone on a path",sc:"on a long dim underground path, earth brown and faint gold",c:"誰も見てなくても、やる。",d:"地味な作業を積み上げてチームを支える。続けることに関しては誰にも負けん。",g:["継続力","チームへの誠実さ"],w:"自分の手柄を言わん。言わんと、次の仕事に繋がらへん。",d2:"誰も見てなくても、やる。地味な作業を積み上げてチームを支えてるのはこの人。続けることでは誰にも負けん。"},
+{n:"音もなく終わらせるヘビ",e:"🐍",en:"snake",v:"coiled quietly beside a checklist where every box is already ticked",sc:"in a shadowed room cut by one strip of light, charcoal and jade",c:"気づかれる前に、終わらせる。",d:"静かに機を待って、来た瞬間に一気に仕留める。無駄口をいっさい叩かん。",g:["集中の切れ味","冷静さ"],w:"相談せずに進める。一声かけたほうが、結果は同じでも通りやすい。",d2:"静かに機を待って、来た瞬間に仕留める。無駄口を叩かんから、終わってから気づかれる。切れ味が鋭い。"},
+{n:"細かいミス見つけるテントウムシ",e:"🐞",en:"ladybug",v:"holding a red pen, its spots arranged like little check marks",sc:"on a desk covered in printed pages, white and red",c:"小さい不具合、ぜんぶ見えてる。",d:"細かい違和感に気づいて、黙って直してる人。チームの品質を守ってるのはこの目。",g:["ミスを見つける","手が早い"],w:"指摘の仕方で損をする。直したことを先に言うと角が立たん。",d2:"細かい違和感に気づいて、黙って直してる。チームの品質を守ってるのはこの目。見落としがほぼ無い。"},
+{n:"自分の持ち場だけのペンギン",e:"🐧",en:"penguin",v:"standing on its own small ice tile with a broom",sc:"on a small ice floe in flat even daylight, pale blue and white",c:"自分の持ち場は、自分で守る。",d:"群れの中にはおるけど、作業は一人がええ。決めた手順を淡々と回しきる。",g:["安定した実行","自己管理"],w:"助けを求めん。手が回らん時は早めに言うたほうが被害が小さい。",d2:"群れにはおるけど、作業は一人がええ。決めた手順を淡々と回しきる安定感がある。自己管理が完璧。"},
+{n:"ズレが気になるカタツムリ",e:"🐌",en:"snail",v:"aligning tiny tiles with a ruler, very slowly",sc:"on a tiled floor being carefully aligned, soft grey and mint",c:"遅くていい。ズレてるほうが困る。",d:"速さより正しさ。ゆっくりでも、全部そろえてから前に進む慎重派。",g:["丁寧さ","ズレを直す力"],w:"スピードを求められると苦しい。どこを雑にしてええか先に聞こ。",d2:"速さより正しさ。ゆっくりでも全部そろえてから前に進む。ズレを見つける力は誰よりある。"},
+{n:"部屋から出えへんパンダ",e:"🐼",en:"panda",v:"inside a cozy room, shelves full of favorite things",sc:"inside a cozy room packed with shelves, warm wood and green",c:"自分の世界が、いちばん落ち着く。",d:"好きなものを整えて並べてる時間が幸せ。人に合わせるのは、正直しんどい。",g:["世界観の作り込み","こだわり"],w:"外に出るのが億劫。作ったもんだけ先に外に出してもええ。",d2:"好きなものを整えて並べてる時間がいちばん幸せ。世界観の作り込みが本物やから、出せば刺さる。"},
+{n:"ごはん食べたか聞くブタ",e:"🐷",en:"pig",v:"wearing an apron, holding a lunchbox and a ladle",sc:"in a warm kitchen at dinner time, tomato red and cream",c:"食べた？ 寝た？",d:"気づいたら世話してる。段取りも生活力も高い、チームのおかんポジション。",g:["生活面から支える","抜けがない"],w:"自分のことが後回し。自分にも同じことを聞いたって。",d2:"気づいたら世話してる。段取りも生活力も高い、チームのおかん的な存在。人のことをよう見てる。"},
+{n:"急かされたくないウシ",e:"🐮",en:"cow",v:"wrapped in a knitted blanket with a cup of tea",sc:"in a quiet barn corner in soft morning light, straw yellow and grey",c:"急かされるのが、いちばん苦手。",d:"自分のリズムさえ守れれば強い。穏やかやけど、ここは譲らんという線をちゃんと持ってる。",g:["安定感","粘り強さ"],w:"急な依頼で崩れる。バッファを先に取っとこ。",d2:"自分のリズムさえ守れれば強い。穏やかやけど、ここは譲らんという線をちゃんと持ってる。"},
+{n:"手土産持ってくるハト",e:"🕊️",en:"dove",v:"carrying a small gift box tied with a ribbon",sc:"at a doorway holding a small gift, pale blue and white",c:"なんか持ってきたで。",d:"人と人の間を静かに取り持つ人。角の立たん伝え方が、びっくりするほど上手い。",g:["橋渡し","空気を壊さない"],w:"本音を言う場面で引く。ここぞの一回だけは言い切ろ。",d2:"人と人の間を静かに取り持つ。角の立たん伝え方が異常に上手くて、この人がおると話がまとまる。"},
+{n:"理由言わんとふくれるフグ",e:"🐡",en:"pufferfish",v:"fully puffed up, arms crossed, pouting to the side",sc:"in a small rocky nook underwater, murky teal and coral",c:"機嫌が悪いと、ふくれる。",d:"普段はのんびり、怒るとめちゃくちゃ分かりやすい。感情に正直で、嘘がない。",g:["素直","一人でも平気"],w:"ふくれてる理由を言わん。言うだけで、だいたい解決する。",d2:"普段はのんびり、怒るとめちゃくちゃ分かりやすい。感情に嘘がないから、実は安心して付き合える。"},
+{n:"くっついたまま離れんコアラ",e:"🐨",en:"koala",v:"hugging a cushion, half asleep, eyes almost closed",sc:"on a eucalyptus branch in hazy afternoon, sage green and grey",c:"くっついてるだけで、ええねん。",d:"無理に喋らんでも一緒におれる相手。おるだけで安心をくれる存在。",g:["人を安心させる","穏やか"],w:"動き出すまで時間がかかる。誘われたら乗る、でちょうどいい。",d2:"無理に喋らんでも一緒におれる相手。おるだけで安心をくれる、そういう存在。穏やかさが力になってる。"},
+{n:"ひだまり占領するラクダ",e:"🐫",en:"camel",v:"lying right in a patch of sunlight on the floor",sc:"on a warm patch of sunlight on an indoor floor, sand beige and gold",c:"ひとりで、あったかいとこにおりたい。",d:"見た目は大きいけど中身は繊細。無理せんペースで、長く続けるのが得意。",g:["マイペースの強さ","芯がある"],w:"感情を出すのが遅い。溜める前に、小出しにしとこ。",d2:"あったかいところで、自分のペースでおりたい。無理せん代わりに、長く続けるのが得意。芯はちゃんとある。"},
+{n:"なんも考えてへんマンボウ",e:"🐟",en:"sunfish",v:"floating sideways with a blank, happy face",sc:"drifting in wide open water, washed-out pale blue and white",c:"深く考えんほうが、うまくいく。",d:"流れに身をまかせるのが上手い。一緒におる人の緊張が、なぜかほどけていく。",g:["癒やし","こだわらない強さ"],w:"流されやすい。ここだけは、という一点を決めとこ。",d2:"流れに身をまかせるのが上手い。一緒におる人の緊張がなぜかほどける、貴重なタイプ。"}
 ];
 
 /* ---------- 画像生成プロンプト ----------
@@ -803,6 +867,7 @@ function renderResult(idx, left){
   $("rName").textContent = t.n;
   $("rCatch").textContent = t.c;
   $("rDesc").textContent = t.d;
+  $("rDeep").textContent = t.d2;
 
   // 結果のメイン画像＝背景ありのイラスト。無ければ絵文字。
   setImg($("rPortrait"), "img/chars/"+code+".png", t, $("rPh"));
@@ -816,15 +881,25 @@ function renderResult(idx, left){
     const row = document.createElement("div");
     row.className="ax";
     row.innerHTML =
-      '<span class="nm'+(bits[i]===0?" on":"")+'">'+a.l.n+'</span>'+
-      '<span class="track"><i class="'+(bits[i]===0?"":"right")+'" style="'+
-        (bits[i]===0 ? 'left:0;width:'+pct+'%' : 'right:0;width:'+(100-pct)+'%')+'"></i></span>'+
-      '<span class="nm r'+(bits[i]===1?" on":"")+'">'+a.r.n+'</span>';
+      '<div class="axrow">'+
+        '<span class="nm'+(bits[i]===0?" on":"")+'">'+a.l.n+'</span>'+
+        '<span class="track"><i class="'+(bits[i]===0?"":"right")+'" style="'+
+          (bits[i]===0 ? 'left:0;width:'+pct+'%' : 'right:0;width:'+(100-pct)+'%')+'"></i></span>'+
+        '<span class="nm r'+(bits[i]===1?" on":"")+'">'+a.r.n+'</span>'+
+      '</div>'+
+      '<p class="axdesc">'+AXIS_DESC[i][bits[i]]+'</p>';
     ax.appendChild(row);
   });
 
   $("rGood").innerHTML = t.g.map(s=>"<li>"+s+"</li>").join("");
   $("rWeak").textContent = t.w;
+
+  // 軸の組み合わせで中身が変わる4つ
+  const L = (i)=> bits[i]===0 ? AXES[i].l.c : AXES[i].r.c;
+  $("rWork").textContent   = COMBO_WORK[   L(3)+L(4) ];
+  $("rDist").textContent   = COMBO_DIST[   L(0)+L(5) ];
+  $("rStress").textContent = COMBO_STRESS[ L(2)+L(0) ];
+  $("rGrow").textContent   = COMBO_GROW[   L(1)+L(3) ];
 
   // ここで引っぱる：注意点の頭だけ見せて切る
   const first = t.w.split("。")[0];

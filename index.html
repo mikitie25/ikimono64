@@ -828,6 +828,14 @@ let answers = new Array(QUESTIONS.length).fill(null); // 0=A, 1=B
 let cur = 0;
 
 const $ = id => document.getElementById(id);
+
+// 要素が無くても落ちんようにする。
+// 1個の消し忘れでページ全部が止まる事故を防ぐための保険。
+function on(id, ev, fn){
+  const el = $(id);
+  if(el) el.addEventListener(ev, fn);
+  else console.warn("要素が見つからん:", id);
+}
 const show = (...ids) => {
   ["start","quiz","result"].forEach(s => $(s).classList.add("hide"));
   ids.forEach(i => $(i).classList.remove("hide"));
@@ -912,14 +920,14 @@ function pick(v){
   },180);
 }
 
-$("chA").addEventListener("click",()=>pick(0));
-$("chB").addEventListener("click",()=>pick(1));
-$("btnBack").addEventListener("click",()=>{ if(cur>0){ cur--; renderQ(); } });
-$("btnStart").addEventListener("click",()=>{
+on("chA","click",()=>pick(0));
+on("chB","click",()=>pick(1));
+on("btnBack","click",()=>{ if(cur>0){ cur--; renderQ(); } });
+on("btnStart","click",()=>{
   track("quiz_start");
   cur=0; answers.fill(null); show("quiz"); renderQ();
 });
-$("btnRetry").addEventListener("click",()=>{
+on("btnRetry","click",()=>{
   track("retry_click");
   setUrl(location.pathname);
   cur=0; answers.fill(null); show("start"); window.scrollTo(0,0);
@@ -1059,7 +1067,7 @@ function applyLock(){
   if(open){ w.classList.remove("on"); $("rTeaser").classList.add("hide"); }
   else { w.classList.add("on"); $("rTeaser").classList.remove("hide"); }
 }
-$("btnLine").addEventListener("click",()=>{
+on("btnLine","click",()=>{
   track("line_unlock_click");
   window.open(CONFIG.LINE_URL,"_blank");
 });
@@ -1072,7 +1080,7 @@ function normPass(x){
     .trim().toLowerCase();
 }
 
-$("btnPass").addEventListener("click",()=>{
+on("btnPass","click",()=>{
   const v = normPass($("passInput").value);
   if(v === normPass(CONFIG.PASS)){
     setUnlocked(); applyLock(); toast("解除しました");
@@ -1083,7 +1091,7 @@ $("btnPass").addEventListener("click",()=>{
     toast("合言葉がちがいます");
   }
 });
-$("passInput").addEventListener("keydown",e=>{ if(e.key==="Enter") $("btnPass").click(); });
+on("passInput","keydown",e=>{ if(e.key==="Enter") $("btnPass").click(); });
 
 /* ---------- シェア ---------- */
 function shareUrl(){
@@ -1096,21 +1104,20 @@ function shareText(){
 const openShare  = ()=>$("shareSheet").classList.remove("hide");
 const closeShare = ()=>$("shareSheet").classList.add("hide");
 
-$("btnShare").addEventListener("click",openShare);
-$("btnShareClose").addEventListener("click",closeShare);
-$("shareSheet").addEventListener("click",e=>{ if(e.target===$("shareSheet")) closeShare(); });
+on("btnShareClose","click",closeShare);
+on("shareSheet","click",e=>{ if(e.target===$("shareSheet")) closeShare(); });
 
 // 端末の共有メニューが使えん機種では、その項目を隠す
 if(!navigator.share) $("toNative").classList.add("hide");
 
-$("toX").addEventListener("click",()=>{
+on("toX","click",()=>{
   track("share_click", { to:"x" });
   closeShare();
   window.open("https://twitter.com/intent/tweet?text="+
     encodeURIComponent(shareText())+"&url="+encodeURIComponent(shareUrl()),"_blank");
 });
 
-$("toThreads").addEventListener("click",()=>{
+on("toThreads","click",()=>{
   track("share_click", { to:"threads" });
   closeShare();
   window.open("https://www.threads.net/intent/post?text="+
@@ -1118,14 +1125,14 @@ $("toThreads").addEventListener("click",()=>{
 });
 
 // Instagramは外から投稿画面に文字を入れられん。コピーしてから開く。
-$("toInsta").addEventListener("click",()=>{
+on("toInsta","click",()=>{
   track("share_click", { to:"instagram" });
   copy(shareText()+"\n"+shareUrl(), "コピーしました。Instagramで貼り付けてください");
   closeShare();
   setTimeout(()=>window.open("https://www.instagram.com/","_blank"), 700);
 });
 
-$("toNative").addEventListener("click",async ()=>{
+on("toNative","click",async ()=>{
   track("share_click", { to:"native" });
   closeShare();
   try {
@@ -1137,12 +1144,12 @@ $("toNative").addEventListener("click",async ()=>{
   } catch(e){ /* 途中でやめただけ。何もせんでよい */ }
 });
 
-$("btnShareLine").addEventListener("click",()=>{
+on("btnShareLine","click",()=>{
   track("share_click", { to:"line" });
   window.open("https://social-plugins.line.me/lineit/share?url="+
     encodeURIComponent(shareUrl())+"&text="+encodeURIComponent(shareText()),"_blank");
 });
-$("btnCopy").addEventListener("click",()=>{
+on("btnCopy","click",()=>{
   track("share_click", { to:"copy_link" });
   copy(shareUrl(),"リンクをコピーしました");
 });
@@ -1187,9 +1194,9 @@ function renderZukan(){
 }
 function openZukan(){ track("all_chars_click"); renderZukan(); $("zukan").classList.remove("hide"); document.body.style.overflow="hidden"; }
 function closeZukan(){ $("zukan").classList.add("hide"); document.body.style.overflow=""; }
-$("btnZukan").addEventListener("click",openZukan);
-$("btnZukanTop").addEventListener("click",openZukan);
-$("btnZukanClose").addEventListener("click",closeZukan);
+on("btnZukan","click",openZukan);
+on("btnZukanTop","click",openZukan);
+on("btnZukanClose","click",closeZukan);
 
 let DEV = false;
 try { DEV = new URLSearchParams(location.search).get("dev")==="1"; } catch(e){}
@@ -1218,10 +1225,10 @@ function openSheet(i){
   }
   $("sheet").classList.remove("hide");
 }
-$("btnSheetClose").addEventListener("click",()=>$("sheet").classList.add("hide"));
-$("sheet").addEventListener("click",e=>{ if(e.target===$("sheet")) $("sheet").classList.add("hide"); });
-$("btnPromptCopy").addEventListener("click",()=>copy(buildPrompt(sheetIdx),"プロンプトをコピーしました"));
-$("btnAllPrompt").addEventListener("click",()=>{
+on("btnSheetClose","click",()=>$("sheet").classList.add("hide"));
+on("sheet","click",e=>{ if(e.target===$("sheet")) $("sheet").classList.add("hide"); });
+on("btnPromptCopy","click",()=>copy(buildPrompt(sheetIdx),"プロンプトをコピーしました"));
+on("btnAllPrompt","click",()=>{
   const all = TYPES.map((t,i)=>
     "===== "+(i+1)+" / "+idxToCode(i)+" / "+t.n+" =====\n"+buildPrompt(i)
   ).join("\n\n");
@@ -1486,14 +1493,14 @@ async function openCardSheet(){
 }
 function closeCardSheet(){ $("cardSheet").classList.add("hide"); }
 
-$("btnCard").addEventListener("click", openCardSheet);
-$("btnCardTop").addEventListener("click", openCardSheet);
-$("btnCardClose").addEventListener("click", closeCardSheet);
-$("cardSheet").addEventListener("click", e=>{ if(e.target===$("cardSheet")) closeCardSheet(); });
+on("btnCard","click", openCardSheet);
+on("btnCardTop","click", openCardSheet);
+on("btnCardClose","click", closeCardSheet);
+on("cardSheet","click", e=>{ if(e.target===$("cardSheet")) closeCardSheet(); });
 
 function cardFileName(){ return "ikimono64-" + idxToCode(currentIdx) + ".png"; }
 
-$("btnCardSave").addEventListener("click", async ()=>{
+on("btnCardSave","click", async ()=>{
   if(!cardBlob){ toast("まだ準備中です"); return; }
   track("share_download");
   const file = new File([cardBlob], cardFileName(), { type:"image/png" });
@@ -1511,11 +1518,11 @@ $("btnCardSave").addEventListener("click", async ()=>{
   toast("画像を保存しました");
 });
 
-$("btnCardShare").addEventListener("click", ()=>{
+on("btnCardShare","click", ()=>{
   closeCardSheet();
   $("shareSheet").classList.remove("hide");
 });
-$("btnCardCopy").addEventListener("click", ()=>{
+on("btnCardCopy","click", ()=>{
   track("share_click", { to:"copy_link" });
   copy(shareUrl(), "リンクをコピーしました");
 });

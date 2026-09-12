@@ -483,6 +483,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin:30px 0 0}
 
 /* ===== ここだけ、みきが書き換える ===== */
 const CONFIG = {
+  // 公式LINEができるまでは false（全部そのまま読める）。
+  // LINEの準備ができたら true にすると、続きがロックされる。
+  LOCK: false,
+
   // 公式LINEの友だち追加URL（※いまは仮。本物に差し替えること）
   LINE_URL: "https://lin.ee/XXXXXXX",
   // LINEで配る合言葉（大文字小文字・前後の空白・全角半角のちがいは無視される）
@@ -835,7 +839,7 @@ function renderResult(idx, left){
     matchBtn("一緒におって気楽", idx ^ 0b000101) +
     matchBtn("たぶん噛み合わん", idx ^ 0b111111);
   [...$("rMatch").querySelectorAll("button")].forEach(b=>{
-    b.addEventListener("click",()=>{ if(isUnlocked()) openSheet(+b.dataset.i); });
+    b.addEventListener("click",()=>{ if(!CONFIG.LOCK || isUnlocked()) openSheet(+b.dataset.i); });
   });
 
   applyLock();
@@ -873,7 +877,8 @@ function setUnlocked(){
 }
 function applyLock(){
   const w = $("lockwrap");
-  if(isUnlocked()){ w.classList.remove("on"); $("rTeaser").classList.add("hide"); }
+  const open = !CONFIG.LOCK || isUnlocked();
+  if(open){ w.classList.remove("on"); $("rTeaser").classList.add("hide"); }
   else { w.classList.add("on"); $("rTeaser").classList.remove("hide"); }
 }
 $("btnLine").addEventListener("click",()=>{
@@ -1012,7 +1017,7 @@ function openSheet(i){
   } else {
     $("sPrompt").classList.add("hide");
     $("btnPromptCopy").classList.add("hide");
-    $("sNote").innerHTML = isUnlocked()
+    $("sNote").innerHTML = (!CONFIG.LOCK || isUnlocked())
       ? "<b>"+TYPES[i].c+"</b><br>"+TYPES[i].d
       : "<b>"+TYPES[i].c+"</b><br>くわしい解説は、公式LINEを追加したら読めます。";
     $("sNote").classList.remove("hide");

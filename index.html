@@ -1312,13 +1312,16 @@ function pickTheme(img, bits){
   const dark = lum < 0.5;
   const hsl = (hh,ss2,ll)=>"hsl("+((hh%360+360)%360).toFixed(0)+","+(ss2*100).toFixed(0)+"%,"+(ll*100).toFixed(0)+"%)";
   return {
-    dark,
-    bg1: dark ? hsl(h, sat, 0.17) : hsl(h, sat*0.7, 0.90),
-    bg2: dark ? hsl(h+22, sat, 0.34) : hsl(h+22, sat*0.8, 0.74),
-    ink: dark ? "#FFFFFF" : "#2B2140",
-    sub: dark ? "rgba(255,255,255,.72)" : "rgba(43,33,64,.62)",
-    chip: dark ? "rgba(255,255,255,.16)" : "rgba(255,255,255,.72)",
-    deco: dark ? "rgba(255,255,255,.16)" : "rgba(43,33,64,.10)",
+    dark, h, sat,
+    bg1: dark ? hsl(h, sat, 0.14) : hsl(h, sat*0.7, 0.92),
+    bg2: dark ? hsl(h+24, sat, 0.32) : hsl(h+24, sat*0.8, 0.72),
+    accent: hsl(h+10, Math.min(0.88, sat+0.34), dark ? 0.64 : 0.52),
+    accentInk: hsl(h+8, Math.min(0.92, sat+0.46), 0.42),
+    ink: dark ? "#FFFFFF" : "#241C3A",
+    sub: dark ? "rgba(255,255,255,.78)" : "rgba(36,28,58,.68)",
+    faint: dark ? "rgba(255,255,255,.45)" : "rgba(36,28,58,.42)",
+    scrim: dark ? "0,0,0" : "255,255,255",
+    deco: dark ? "rgba(255,255,255,.17)" : "rgba(36,28,58,.11)",
     kind: ["star","bubble","leaf","dot"][bits[1]*2 + bits[4]]
   };
 }
@@ -1373,8 +1376,16 @@ function fitLines(x, text, maxW, size, weight){
     x.font = weight+' '+fs+'px "Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif';
     if(x.measureText(text).width <= maxW) return { lines:[text], fs };
     // 真ん中あたりで2行に割る
+    // まず、うしろのカタカナ（動物名）の手前で割ってみる
+    const kata = text.match(/[ァ-ヴー]+$/);
+    if(kata && kata[0].length < text.length){
+      const a0 = text.slice(0, text.length-kata[0].length), b0 = kata[0];
+      if(Math.max(x.measureText(a0).width, x.measureText(b0).width) <= maxW){
+        return { lines:[a0,b0], fs };
+      }
+    }
     // 助詞や小文字で行が始まると読みにくいので、そこでは割らん
-    const NG = "のがをにへとでもはやねよわらりるれろっゃゅょーぁぃぅぇぉ、。";
+    const NG = "のがをにへとでもはやねよわらりるれろっゃゅょーぁぃぅぇぉ、。こそ";
     let best = null;
     for(let pass=0; pass<2 && !best; pass++){
       for(let i=1;i<text.length;i++){
@@ -1394,72 +1405,213 @@ function fitLines(x, text, maxW, size, weight){
   return { lines:[text], fs };
 }
 
+// ---- 部品 ----
+
+// 画像を枠いっぱいに覆うように描く
+function coverDraw(x, src, dw, dh, dx, dy){
+  const iw = src.width || 1, ih = src.height || 1;
+  const sc = Math.max(dw/iw, dh/ih);
+  const w = iw*sc, h = ih*sc;
+  x.drawImage(src, dx+(dw-w)/2, dy+(dh-h)/2, w, h);
+}
+
+// ちぎった紙みたいな白い面
+function paperPatch(x, px, py, pw, ph, seed){
+  let s0 = seed;
+  const rnd = ()=>{ s0 = (s0*1103515245 + 12345) & 0x7fffffff; return s0/0x7fffffff; };
+  // 長方形の辺をがたつかせて、ちぎった紙にする
+  const pts = [];
+  const edge = (x1,y1,x2,y2,steps,nx,ny)=>{
+    for(let i=0;i<steps;i++){
+      const u = i/steps;
+      const j = (rnd()-0.35) * 22;
+      pts.push([x1+(x2-x1)*u + nx*j, y1+(y2-y1)*u + ny*j]);
+    }
+  };
+  edge(px,      py,      px+pw, py,      9,  0, 1);
+  edge(px+pw,   py,      px+pw, py+ph,   6, -1, 0);
+  edge(px+pw,   py+ph,   px,    py+ph,   9,  0,-1);
+  edge(px,      py+ph,   px,    py,      6,  1, 0);
+  x.save();
+  x.shadowColor = "rgba(0,0,0,.3)"; x.shadowBlur = 30; x.shadowOffsetY = 10;
+  x.beginPath();
+  pts.forEach(([qx,qy],i)=> i ? x.lineTo(qx,qy) : x.moveTo(qx,qy));
+  x.closePath();
+  x.fillStyle = "rgba(255,255,255,.94)";
+  x.fill();
+  x.restore();
+}
+
+// 筆でひいたような下線
+function brushLine(x, x1, x2, y, color, thick){
+  x.save();
+  x.strokeStyle = color; x.lineCap = "round"; x.lineWidth = thick;
+  x.beginPath();
+  x.moveTo(x1, y);
+  x.quadraticCurveTo((x1+x2)/2, y + thick*0.7, x2, y - thick*0.2);
+  x.stroke();
+  x.restore();
+}
+
+// 肉球
+function paw(x, cx, cy, sz, color){
+  x.save(); x.fillStyle = color;
+  x.beginPath(); x.ellipse(cx, cy+sz*0.28, sz*0.52, sz*0.44, 0, 0, Math.PI*2); x.fill();
+  [[-0.52,-0.52,0.20],[-0.17,-0.72,0.21],[0.20,-0.68,0.21],[0.52,-0.40,0.19]].forEach(([ox,oy,r])=>{
+    x.beginPath(); x.ellipse(cx+ox*sz, cy+oy*sz, sz*r, sz*r*1.15, 0, 0, Math.PI*2); x.fill();
+  });
+  x.restore();
+}
+
+// 名前を「かざり部分」と「動物名」に分ける
+function splitName(n){
+  const m = n.match(/[ァ-ヴー]+$/);
+  if(!m || m[0].length === n.length) return { head:"", tail:n };
+  return { head: n.slice(0, n.length-m[0].length), tail: m[0] };
+}
+
 async function buildCard(idx){
   const t = TYPES[idx], code = idxToCode(idx), bits = idxToBits(idx);
   try { await document.fonts.ready; } catch(e){}
 
-  let img = null;
-  try { img = await loadImg("img/chars/"+code+".png"); } catch(e){ /* 絵文字で代用 */ }
+  const mateIdx = idx ^ 0b010101, mate = TYPES[mateIdx];
+  let img = null, mimg = null;
+  try { img  = await loadImg("img/chars/"+code+".png"); } catch(e){}
+  try { mimg = await loadImg("img/chars/"+idxToCode(mateIdx)+".png"); } catch(e){}
 
   const th = pickTheme(img || {}, bits);
   const c = document.createElement("canvas");
   c.width = CARD_W; c.height = CARD_H;
   const x = c.getContext("2d");
 
-  const g = x.createLinearGradient(0,0,0,CARD_H);
-  g.addColorStop(0, th.bg1); g.addColorStop(1, th.bg2);
-  x.fillStyle = g; x.fillRect(0,0,CARD_W,CARD_H);
-  drawDeco(x, th);
+  // ---- 背景：同じ絵を全面に。上下はぼかして伸ばす ----
+  if(img){
+    const small = document.createElement("canvas");
+    small.width = small.height = 48;
+    small.getContext("2d").drawImage(img, 0, 0, 48, 48);
+    x.save();
+    try { x.filter = "blur(30px)"; } catch(e){}
+    coverDraw(x, small, CARD_W, CARD_H, 0, 0);
+    try { x.filter = "none"; } catch(e){}
+    x.restore();
 
-  x.textAlign = "center"; x.textBaseline = "top";
-  const F = (sz,w)=>{ x.font = w+' '+sz+'px "Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif'; };
-
-  x.fillStyle = th.sub; F(40,900); x.fillText("いきもの64診断", CARD_W/2, 120);
-  F(34,700);                        x.fillText("あなたは…",      CARD_W/2, 196);
-
-  // キャラ画像
-  const IW = 860, IX = (CARD_W-IW)/2, IY = 280;
-  x.save();
-  x.shadowColor = "rgba(0,0,0,.28)"; x.shadowBlur = 46; x.shadowOffsetY = 18;
-  roundRect(x, IX, IY, IW, IW, 58); x.fillStyle = "#fff"; x.fill();
-  x.restore();
-  x.save();
-  roundRect(x, IX+10, IY+10, IW-20, IW-20, 50); x.clip();
-  if(img){ x.drawImage(img, IX+10, IY+10, IW-20, IW-20); }
-  else {
-    x.fillStyle = "#EFE8FF"; x.fillRect(IX+10, IY+10, IW-20, IW-20);
-    x.fillStyle = "#2B2140"; x.textBaseline = "middle"; F(300,900);
-    x.fillText(t.e, CARD_W/2, IY+IW/2); x.textBaseline = "top";
+    // くっきりした本体を中央に置き、上下だけなじませる
+    const HS = CARD_W, HY = 470;
+    const off = document.createElement("canvas");
+    off.width = HS; off.height = HS;
+    const o = off.getContext("2d");
+    o.drawImage(img, 0, 0, HS, HS);
+    o.globalCompositeOperation = "destination-in";
+    const f = o.createLinearGradient(0,0,0,HS);
+    f.addColorStop(0,   "rgba(0,0,0,0)");
+    f.addColorStop(0.16,"rgba(0,0,0,1)");
+    f.addColorStop(0.84,"rgba(0,0,0,1)");
+    f.addColorStop(1,   "rgba(0,0,0,0)");
+    o.fillStyle = f; o.fillRect(0,0,HS,HS);
+    x.drawImage(off, 0, HY);
+  } else {
+    const g0 = x.createLinearGradient(0,0,0,CARD_H);
+    g0.addColorStop(0, th.bg1); g0.addColorStop(1, th.bg2);
+    x.fillStyle = g0; x.fillRect(0,0,CARD_W,CARD_H);
   }
-  x.restore();
 
-  let y = IY + IW + 90;
+  // 色を寄せる＋上下を締める
+  const g = x.createLinearGradient(0,0,0,CARD_H);
+  g.addColorStop(0, th.bg1); g.addColorStop(0.5, "rgba(0,0,0,0)"); g.addColorStop(1, th.bg2);
+  x.save(); x.globalAlpha = 0.42; x.fillStyle = g; x.fillRect(0,0,CARD_W,CARD_H); x.restore();
 
-  x.fillStyle = th.ink;
-  const nm = fitLines(x, t.n, 900, 86, "900");
-  nm.lines.forEach(L=>{ x.fillText(L, CARD_W/2, y); y += nm.fs*1.22; });
+  const v = x.createLinearGradient(0,0,0,CARD_H);
+  v.addColorStop(0,   "rgba("+th.scrim+",.55)");
+  v.addColorStop(0.26,"rgba("+th.scrim+",.05)");
+  v.addColorStop(0.62,"rgba("+th.scrim+",.05)");
+  v.addColorStop(1,   "rgba("+th.scrim+",.72)");
+  x.fillStyle = v; x.fillRect(0,0,CARD_W,CARD_H);
 
-  y += 18;
-  x.fillStyle = th.sub;
-  const ct = fitLines(x, t.c, 900, 44, "700");
-  ct.lines.forEach(L=>{ x.fillText(L, CARD_W/2, y); y += ct.fs*1.3; });
-
-  // 相性◎をひとつだけ
-  y += 34;
-  const mate = TYPES[idx ^ 0b010101];
-  F(36,900);
-  const label = "相性◎  " + mate.e + " " + mate.n;
-  const pw = Math.min(940, x.measureText(label).width + 76);
-  roundRect(x, (CARD_W-pw)/2, y, pw, 86, 43);
-  x.fillStyle = th.chip; x.fill();
-  x.fillStyle = th.ink; x.textBaseline = "middle";
-  x.fillText(label, CARD_W/2, y+45);
+  const F = (sz,w)=>{ x.font = w+' '+sz+'px "Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif'; };
+  const glow = on => { x.shadowColor = on ? (th.dark ? "rgba(0,0,0,.62)" : "rgba(255,255,255,.75)") : "transparent"; x.shadowBlur = on ? 22 : 0; };
   x.textBaseline = "top";
 
-  // 下部
-  x.fillStyle = th.ink; F(44,900); x.fillText("あなたは64匹のどれ？", CARD_W/2, 1706);
-  x.fillStyle = th.sub; F(38,700); x.fillText("#いきもの64診断",     CARD_W/2, 1780);
-  F(26,400);                       x.fillText(code,                  CARD_W/2, 1844);
+  // ---- 上：診断名 ----
+  glow(true);
+  x.textAlign = "left";
+  x.fillStyle = th.ink; F(44,900);
+  x.fillText("いきもの64診断", 70, 76);
+  paw(x, 70 + x.measureText("いきもの64診断").width + 46, 104, 26, th.accent);
+  x.fillStyle = th.sub; F(34,700);
+  x.fillText("あなたは…", 104, 152);
+  glow(false);
+
+  // ---- 名前：紙片の上に。動物名だけ色を変える ----
+  const sp = splitName(t.n);
+  x.textAlign = "center";
+  const headFs = sp.head ? (sp.head.length > 8 ? 68 : 80) : 0;
+  const tailFs = sp.tail.length > 7 ? 92 : 116;
+  const headY = 250, tailY = sp.head ? headY + headFs*1.18 : headY + 20;
+  const patchH = (sp.head ? headFs*1.18 : 0) + tailFs*1.3 + 86;
+  paperPatch(x, 96, headY - 48, CARD_W-192, patchH, 777 + idx*13);
+
+  if(sp.head){
+    F(headFs,900); x.fillStyle = "#241C3A";
+    x.fillText(sp.head, CARD_W/2, headY);
+  }
+  F(tailFs,900); x.fillStyle = th.accentInk;
+  x.fillText(sp.tail, CARD_W/2, tailY);
+
+  // ---- 一言：右寄せ＋下線 ----
+  glow(true);
+  x.textAlign = "right";
+  x.fillStyle = th.ink; F(42,700);
+  const cw = 720;
+  const cl = fitLines(x, t.c, cw, 42, "700");
+  let cy = 1230;
+  cl.lines.forEach(L=>{ x.fillText(L, CARD_W-70, cy); cy += cl.fs*1.32; });
+  glow(false);
+  brushLine(x, CARD_W-70-Math.min(cw, x.measureText(cl.lines[cl.lines.length-1]).width), CARD_W-70, cy+10, th.accent, 9);
+
+  // ---- 相性：左下に丸く ----
+  const BX = 268, BY = 1500, BR = 168;
+  x.save();
+  x.shadowColor = "rgba(0,0,0,.34)"; x.shadowBlur = 26; x.shadowOffsetY = 10;
+  x.beginPath(); x.arc(BX, BY, BR, 0, Math.PI*2);
+  x.fillStyle = "rgba(255,255,255,.93)"; x.fill();
+  x.restore();
+
+  const MR = 82;
+  x.save();
+  x.beginPath(); x.arc(BX, BY-38, MR, 0, Math.PI*2); x.clip();
+  if(mimg) x.drawImage(mimg, BX-MR, BY-38-MR, MR*2, MR*2);
+  else { x.fillStyle="#EFE8FF"; x.fillRect(BX-MR,BY-38-MR,MR*2,MR*2);
+         x.fillStyle="#2B2140"; x.textAlign="center"; x.textBaseline="middle"; F(76,900);
+         x.fillText(mate.e, BX, BY-38); x.textBaseline="top"; }
+  x.restore();
+
+  x.textAlign = "center";
+  x.fillStyle = th.accentInk; F(28,900);
+  x.fillText("相性◎", BX, BY - BR + 22);
+  x.fillStyle = "#241C3A";
+  const ml = fitLines(x, mate.n, 292, 25, "900");
+  let my = BY + 54;
+  ml.lines.forEach(L=>{ x.fillText(L, BX, my); my += ml.fs*1.22; });
+
+  // ---- 右下：あなたは64匹のどれ？ ----
+  glow(true);
+  x.textAlign = "right";
+  x.fillStyle = th.ink; F(78,900);
+  x.fillText("あなたは",       CARD_W-70, 1418);
+  x.fillText("64匹のどれ？",   CARD_W-70, 1512);
+  glow(false);
+  brushLine(x, 486, CARD_W-70, 1622, th.accent, 13);
+  paw(x, CARD_W-104, 1676, 26, th.accent);
+
+  // ---- 最下部 ----
+  glow(true);
+  x.textAlign = "left";
+  x.fillStyle = th.ink; F(40,900);
+  x.fillText("#いきもの64診断", 70, 1804);
+  glow(false);
+  x.textAlign = "right";
+  x.fillStyle = th.faint; F(22,400);
+  x.fillText(code, CARD_W-70, 1822);
 
   return c;
 }
